@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../routes/auth/phone_auth_page.dart';
 
 class NavBar extends StatefulWidget {
 //  NavBar({Key key, String loggedInUser}) : super(key: key);
@@ -12,91 +13,94 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> {
   int _clicked = 0;
-  
-  Widget navButton(IconData icon, int index){
+
+  Widget navButton(IconData icon, int index) {
     return RawMaterialButton(
         constraints: BoxConstraints(maxWidth: 40.0, maxHeight: 40.0),
         fillColor: Colors.transparent,
         child: Container(
-          height: 45.0,
-            decoration: _clicked == index ? BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.white, width: 3.0))) : null,
-            child: Icon(
-                icon,
-                color: _clicked == index ? Colors.white : Color.fromRGBO(190, 190, 190, 1),
-                size: 30.0
-            )),
+            height: 45.0,
+            decoration: _clicked == index
+                ? BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(color: Colors.white, width: 3.0)))
+                : null,
+            child: Icon(icon,
+                color: _clicked == index
+                    ? Colors.white
+                    : Color.fromRGBO(190, 190, 190, 1),
+                size: 30.0)),
         onPressed: () {
           if (index == 4) {
             setModalBottomSheet(context);
-            if (widget._loggedInUser == "Tom") setState(() { _clicked = index;});
-          }else setState(() { _clicked = index;});
+            if (widget._loggedInUser == "Tom")
+              setState(() {
+                _clicked = index;
+              });
+          } else
+            setState(() {
+              _clicked = index;
+            });
         });
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    return
-        Container(
-            alignment: Alignment(0,1),
-            child:BottomAppBar(
-              color: Colors.transparent,
-              child: Container(
-                height: 45.0,
-                decoration: BoxDecoration(
-                    border: Border(
-                        top: BorderSide(
-                            color: Color.fromRGBO(190, 190, 190, 0.7),
-                            width: 0.2))),
-                padding: EdgeInsets.only(left: 15.0, right: 15.0),
-                child: new Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    navButton(Icons.home, 0),
-                    navButton(Icons.device_unknown, 1),
-                    navButton(Icons.device_unknown, 2),
-                    navButton(Icons.device_unknown, 3),
-                    navButton(Icons.person, 4)
-                  ],
-                ),
-              )));
-        }
+    return Container(
+        alignment: Alignment(0, 1),
+        child: BottomAppBar(
+            color: Colors.transparent,
+            child: Container(
+              height: 45.0,
+              decoration: BoxDecoration(
+                  border: Border(
+                      top: BorderSide(
+                          color: Color.fromRGBO(190, 190, 190, 0.7),
+                          width: 0.2))),
+              padding: EdgeInsets.only(left: 15.0, right: 15.0),
+              child: new Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  navButton(Icons.home, 0),
+                  navButton(Icons.device_unknown, 1),
+                  navButton(Icons.device_unknown, 2),
+                  navButton(Icons.device_unknown, 3),
+                  navButton(Icons.person, 4)
+                ],
+              ),
+            )));
+  }
 
   void setModalBottomSheet(context) {
     Widget _login = Container(
         padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-        decoration:
-        BoxDecoration(color: Color.fromRGBO(250, 250, 250, 1.0),
+        decoration: BoxDecoration(
+            color: Color.fromRGBO(250, 250, 250, 1.0),
             border: Border(top: BorderSide(color: Colors.grey, width: 0.3))),
         child: Center(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Already have an account? ",
-                      style: TextStyle(fontSize: 13.0)),
-                  Text("Log in",
-                      style: TextStyle(
-                          fontSize: 13.0, fontWeight: FontWeight.w600))
-                ])));
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text("Already have an account? ", style: TextStyle(fontSize: 13.0)),
+          Text("Log in",
+              style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.w600))
+        ])));
 
     Widget _agreeNotice = Container(
         padding: EdgeInsets.only(top: 26.0, bottom: 26.0, left: 80, right: 80),
         child: Center(
             child: Text(
                 "By signing up, you confirm that you agree to our Terms of Use"
-                    "and have read and understood our Privacy Policy.",
+                "and have read and understood our Privacy Policy.",
                 softWrap: true,
                 style: TextStyle(fontSize: 10),
                 textAlign: TextAlign.center)));
 
-    GestureDetector _oAuthLink (String imagePath) {
+    GestureDetector _oAuthLink(String imagePath) {
       return GestureDetector(
           child: Container(
               margin: EdgeInsets.only(left: 8.0),
               width: 48.0,
-              child: Image.asset(imagePath)
-          ),
+              child: Image.asset(imagePath)),
           onTap: () {
             print("clicked");
           });
@@ -106,92 +110,95 @@ class _NavBarState extends State<NavBar> {
         child: Container(
             width: 230,
             height: 42.0,
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _oAuthLink("assets/images/kakao.png"),
-                  _oAuthLink("assets/images/facebook.png"),
-                  _oAuthLink("assets/images/google.png"),
-                  IconButton(
-                    icon: Icon(Icons.arrow_forward_ios),
-                    iconSize: 16.0,
-                    onPressed: () {},
-                  ),
-                ])));
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _oAuthLink("assets/images/kakao.png"),
+              _oAuthLink("assets/images/facebook.png"),
+              _oAuthLink("assets/images/google.png"),
+              IconButton(
+                icon: Icon(Icons.arrow_forward_ios),
+                iconSize: 16.0,
+                onPressed: () {},
+              ),
+            ])));
 
     Widget _orDivider = Container(
-        padding: EdgeInsets.only(
-            left: 32.0, right: 32.0, top: 12.0, bottom: 18.0),
+        padding:
+            EdgeInsets.only(left: 32.0, right: 32.0, top: 12.0, bottom: 18.0),
         child: Row(
-            mainAxisAlignment: MainAxisAlignment
-                .spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Expanded(
-                child: Divider(
-                    height: 1.0, color: Colors.grey),
+                child: Divider(height: 1.0, color: Colors.grey),
               ),
               Container(
-                  padding:
-                  EdgeInsets.only(left: 10.0, right: 10.0),
+                  padding: EdgeInsets.only(left: 10.0, right: 10.0),
                   child: Text("OR",
-                      style: TextStyle(
-                          fontSize: 11,
-                          letterSpacing: 0.5))),
-              Expanded(
-                  child:
-                  Divider(height: 1.0, color: Colors.grey))
+                      style: TextStyle(fontSize: 11, letterSpacing: 0.5))),
+              Expanded(child: Divider(height: 1.0, color: Colors.grey))
             ]));
 
     Widget _textSection = Container(
         padding: const EdgeInsets.only(left: 48, bottom: 14, right: 48),
         child: Center(
             child: Text(
-              'You need a NotPro \n account to continue',
-              textAlign: TextAlign.center,
-              softWrap: true,
-              style: TextStyle(
-                wordSpacing: 3.0,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
-            )));
-
+          'You need a NotPro \n account to continue',
+          textAlign: TextAlign.center,
+          softWrap: true,
+          style: TextStyle(
+            wordSpacing: 3.0,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        )));
 
     Widget _signupButton = Container(
         padding: EdgeInsets.only(
           left: 32.0,
           right: 32.0,
         ),
-        child: Container(
-            margin: EdgeInsets.only(top: 10.0, bottom: 10.0),
-            padding: EdgeInsets.only(
-                top: 10.0, right: 14.0, bottom: 10.0, left: 14.0),
-            decoration: BoxDecoration(
-                color: Colors.pink[400],
-                borderRadius: BorderRadius.all(Radius.circular(3.0))),
-            child: Center(
-                child: Text("Sign Up With Phone Number",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400)))));
+        child: RawMaterialButton(
+          child: Container(
+              margin: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              padding: EdgeInsets.only(
+                  top: 10.0, right: 14.0, bottom: 10.0, left: 14.0),
+              decoration: BoxDecoration(
+                  color: Colors.pink[400],
+                  borderRadius: BorderRadius.all(Radius.circular(3.0))),
+              child: Center(
+                  child: Text("Sign Up With Phone Number",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400)))),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PhoneAuth()),
+            );
+          },
+        ));
 
     Widget _icons = Container(
         padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(iconSize: 20.0,
-                  icon: Icon(Icons.info_outline),
-                  onPressed: () {
-                    setState(() {widget._loggedInUser = "Tom"; _clicked = 4;});
-                  }),
-              IconButton(
-                  iconSize: 20.0, icon: Icon(Icons.close), onPressed: () {
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          IconButton(
+              iconSize: 20.0,
+              icon: Icon(Icons.info_outline),
+              onPressed: () {
+                setState(() {
+                  widget._loggedInUser = "Tom";
+                  _clicked = 4;
+                });
+              }),
+          IconButton(
+              iconSize: 20.0,
+              icon: Icon(Icons.close),
+              onPressed: () {
                 Navigator.pop(context);
               })
-            ]));
+        ]));
 
     showModalBottomSheet(
         context: context,
@@ -217,5 +224,4 @@ class _NavBarState extends State<NavBar> {
               ));
         });
   }
-
 }

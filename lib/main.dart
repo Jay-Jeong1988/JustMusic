@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notpro/pages/home/components/video.dart';
+import './routes/home/home_page.dart';
 import './global_components/nav_bar.dart';
+import './routes/auth/phone_auth_page.dart';
 
 void main() => runApp(App());
 
@@ -11,25 +12,23 @@ class App extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'NotPro',
         theme: ThemeData(canvasColor: Colors.transparent),
-        home: MyHomePage());
+        home: AppScreen());
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+class AppScreen extends StatefulWidget {
+  AppScreen({Key key}) : super(key: key);
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _AppScreenState createState() => _AppScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _AppScreenState extends State<AppScreen> {
   String _loggedInUser = "Jay";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: [
-                Container(
-                    child: VideoPlayerScreen()
-                ),
+                HomePage(),
                 NavBar(_loggedInUser)
               ])
     );
