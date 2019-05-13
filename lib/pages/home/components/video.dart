@@ -51,7 +51,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 //              // Use the VideoPlayer widget to display the video
 //              child: RotatedBox(quarterTurns: 1, child: VideoPlayer(_controller)),
 //            );
-                return VideoPlayer(_controller);
+//                return VideoPlayer(_controller);
+              return RotatedBox(quarterTurns: 1, child: VideoPlayer(_controller));
               } else {
                 // If the VideoPlayerController is still initializing, show a
                 // loading spinner

@@ -90,6 +90,18 @@ class _NavBarState extends State<NavBar> {
                 style: TextStyle(fontSize: 10),
                 textAlign: TextAlign.center)));
 
+    GestureDetector _oAuthLink (String imagePath) {
+      return GestureDetector(
+          child: Container(
+              margin: EdgeInsets.only(left: 8.0),
+              width: 48.0,
+              child: Image.asset(imagePath)
+          ),
+          onTap: () {
+            print("clicked");
+          });
+    }
+
     Widget _oAuth = Center(
         child: Container(
             width: 230,
@@ -97,33 +109,9 @@ class _NavBarState extends State<NavBar> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  GestureDetector(
-                      child: Container(
-                          margin: EdgeInsets.only(left: 8.0),
-                          width: 48.0,
-                          child: Image.asset('assets/images/kakao.png')
-                      ),
-                      onTap: () {
-                        print("clicked");
-                      }),
-                  GestureDetector(
-                      child: Container(
-                          margin: EdgeInsets.only(left: 8.0),
-                          width: 48.0,
-                          child: Image.asset('assets/images/facebook.png')
-                      ),
-                      onTap: () {
-                        print("clicked");
-                      }),
-                  GestureDetector(
-                      child: Container(
-                          margin: EdgeInsets.only(left: 8.0),
-                          width: 48.0,
-                          child: Image.asset('assets/images/google.png')
-                      ),
-                      onTap: () {
-                        print("clicked");
-                      }),
+                  _oAuthLink("assets/images/kakao.png"),
+                  _oAuthLink("assets/images/facebook.png"),
+                  _oAuthLink("assets/images/google.png"),
                   IconButton(
                     icon: Icon(Icons.arrow_forward_ios),
                     iconSize: 16.0,
