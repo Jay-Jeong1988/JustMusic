@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import './routes/home/home_page.dart';
 import './global_components/nav_bar.dart';
-import './routes/auth/phone_auth_page.dart';
+import './models/user.dart';
 
 void main() => runApp(App());
 
@@ -17,19 +17,21 @@ class App extends StatelessWidget {
 }
 
 class AppScreen extends StatefulWidget {
-  AppScreen({Key key}) : super(key: key);
+  final User user;
+  AppScreen({Key key, @required this.user}) : super(key: key);
+
   @override
   _AppScreenState createState() => _AppScreenState();
 }
 
 class _AppScreenState extends State<AppScreen> {
-  String _loggedInUser = "Jay";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: [
-                HomePage(),
-                NavBar(_loggedInUser)
+//                HomePage(),
+                  NavBar(widget.user != null ? widget.user.nickname : "no user")
               ])
     );
   }

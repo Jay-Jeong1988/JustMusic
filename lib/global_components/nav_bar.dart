@@ -4,8 +4,8 @@ import '../routes/auth/phone_auth_page.dart';
 class NavBar extends StatefulWidget {
 //  NavBar({Key key, String loggedInUser}) : super(key: key);
   String _loggedInUser;
-  NavBar(String loggedInUser) {
-    this._loggedInUser = loggedInUser;
+  NavBar(String _loggedInUser){
+    this._loggedInUser = _loggedInUser;
   }
   @override
   _NavBarState createState() => _NavBarState();
@@ -14,6 +14,9 @@ class NavBar extends StatefulWidget {
 class _NavBarState extends State<NavBar> {
   int _clicked = 0;
 
+  void initState(){
+    print(widget._loggedInUser);
+  }
   Widget navButton(IconData icon, int index) {
     return RawMaterialButton(
         constraints: BoxConstraints(maxWidth: 40.0, maxHeight: 40.0),
@@ -33,7 +36,7 @@ class _NavBarState extends State<NavBar> {
         onPressed: () {
           if (index == 4) {
             setModalBottomSheet(context);
-            if (widget._loggedInUser == "Tom")
+            if (widget._loggedInUser.isNotEmpty)
               setState(() {
                 _clicked = index;
               });
