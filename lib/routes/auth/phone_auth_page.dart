@@ -59,7 +59,7 @@ class PhoneAuthState extends State<PhoneAuth> {
 //      } else if (exception is FirebaseTooManyRequestsException) {
 //        // The SMS quota for the project has been exceeded
 //        // ...
-//      }
+//
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -138,8 +138,10 @@ class PhoneAuthState extends State<PhoneAuth> {
           builder: (context) => AppScreen(user: user)
       ));
     }else {
+      FirebaseAuth.instance.signOut();
       print("validation error: ${decodedResponse["error"]}");
-      throw Exception('Failed to save user');
+      print("Firebase user logged out");
+      throw Exception('Failed to save or load a user');
     }
   }
 
