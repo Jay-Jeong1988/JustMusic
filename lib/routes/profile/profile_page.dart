@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../global_components/geolocation.dart';
 
 class ProfilePage extends StatefulWidget {
 //  ProfilePage(Key key, user) : super(key: key);
@@ -13,12 +14,12 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Stack(children: [
-        Center(
-        child: Text(
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center
+        ,children: [
+        Text(
         "Profile Page ${widget.user != null ? widget.user.nickname : 's'}", style: TextStyle(color: Colors.white)
-        ))
-    ])
-    );}
+        ),
+          GeoListenPage()
+    ]));
+    }
 }

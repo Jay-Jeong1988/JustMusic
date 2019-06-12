@@ -4,6 +4,7 @@ import './models/user.dart';
 import './routes/profile/profile_page.dart';
 import './global_components/navbar.dart';
 import './global_components/modal_bottom_sheet.dart';
+import './routes/auth/country_code_widget.dart';
 
 void main() => runApp(App());
 
@@ -38,7 +39,7 @@ class _AppScreenState extends State<AppScreen> {
       ),
       Center(child: Text("?", style: TextStyle(color: Colors.white))),
       Center(child: Text("?", style: TextStyle(color: Colors.white))),
-      Center(child: Text("?", style: TextStyle(color: Colors.white))),
+      CountryCodeWidget(),
       ProfilePage(widget.user),
     ];
   }

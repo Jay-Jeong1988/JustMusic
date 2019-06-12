@@ -4,35 +4,37 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/user.dart';
 import '../../main.dart';
+import '../../utils/locationUtil.dart';
+import '../../models/country.dart';
 
 class PhoneAuth extends StatefulWidget {
   @override
-  PhoneAuthState createState() => PhoneAuthState();
+  _PhoneAuthState createState() => _PhoneAuthState();
 }
 
-class PhoneAuthState extends State<PhoneAuth> {
+class _PhoneAuthState extends State<PhoneAuth> {
   String phoneNo;
   String smsCode;
   String verificationId;
-  String validationError;
+  Future<Country> country;
 
   @override
   void initState() {
     super.initState();
     _signOut();
-    FirebaseAuth.instance.onAuthStateChanged.listen((FirebaseUser user){
-      var authState = user == null ?
-        "No current firebase user" : "Firebase user online";
+    FirebaseAuth.instance.onAuthStateChanged.listen((FirebaseUser user) {
+      var authState =
+          user == null ? "No current firebase user" : "Firebase user online";
       print("AuthState: $authState");
     });
+    this.country = getCountryInstance();
   }
 
-  Future<void> _signOut () async {
+  Future<void> _signOut() async {
     await FirebaseAuth.instance.signOut();
   }
 
   Future<void> verifyPhone() async {
-
     final PhoneCodeAutoRetrievalTimeout autoRetrievalTimeout = (String verId) {
       print("autoretrieval has timed out");
     };
@@ -45,12 +47,14 @@ class PhoneAuthState extends State<PhoneAuth> {
       smsCodeDialog(context);
     };
 
-    final PhoneVerificationCompleted verificationSuccess = (AuthCredential user) {
+    final PhoneVerificationCompleted verificationSuccess =
+        (AuthCredential user) {
       print('auto verified and signed in user: $user');
       print('phone number: $this.phoneNo');
     };
 
-    final PhoneVerificationFailed verificationFailed = (AuthException exception) {
+    final PhoneVerificationFailed verificationFailed =
+        (AuthException exception) {
       print('${exception.message}');
       print("authentication failed");
 //      if (exception is FirebaseAuthInvalidCredentialsException) {
@@ -68,8 +72,7 @@ class PhoneAuthState extends State<PhoneAuth> {
         codeSent: smsCodeSent,
         timeout: const Duration(seconds: 30),
         verificationCompleted: verificationSuccess,
-        verificationFailed: verificationFailed
-    );
+        verificationFailed: verificationFailed);
   }
 
   Future<bool> smsCodeDialog(BuildContext context) {
@@ -89,15 +92,16 @@ class PhoneAuthState extends State<PhoneAuth> {
               new FlatButton(
                 child: Text('Done'),
                 onPressed: () {
-                  FirebaseAuth.instance.currentUser().then((user) {
-                    if (user != null) {
-                      print("current user already exists: $user");
-                      Navigator.of(context).pop();
-                    } else {
-                      signInWithPhoneNumber(this.smsCode);
-                      Navigator.of(context).pop();
-                    }
-                  });
+//                  FirebaseAuth.instance.currentUser().then((user) {
+//                    if (user != null) {
+//                      print("current user already exists: $user");
+//                      Navigator.of(context).pop();
+//                    } else {
+//                      signInWithPhoneNumber(this.smsCode);
+//                      Navigator.of(context).pop();
+//                    }
+//                  });
+                  signInWithPhoneNumber(this.smsCode);
                 },
               )
             ],
@@ -105,28 +109,32 @@ class PhoneAuthState extends State<PhoneAuth> {
         });
   }
 
-
   Future<void> signInWithPhoneNumber(String smsCode) async {
     final AuthCredential credential = PhoneAuthProvider.getCredential(
       verificationId: this.verificationId,
       smsCode: smsCode,
     );
-    final FirebaseUser user = await FirebaseAuth.instance.signInWithCredential(credential);
+    final FirebaseUser user =
+        await FirebaseAuth.instance.signInWithCredential(credential);
     final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
 //    final token = await user.getIdToken();
     assert(user.uid == currentUser.uid);
     print('signed into firebase: $user');
 
     saveUserRequest(user);
-
+    Navigator.of(context).pop();
 //    print('token: $token');
   }
 
   Future<void> saveUserRequest(FirebaseUser user) async {
+    var response;
     var url = 'http://10.0.2.2:3000/users/signup';
-    var response = await http.post(url, body: {'phoneNumber': user.phoneNumber});
+    try {
+      response = await http.post(url, body: {'phoneNumber': user.phoneNumber});
+    } catch (e) {
+      print(e);
+    }
     Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-
     print('Response status: ${response.statusCode}');
     print("${response.body}");
 
@@ -134,10 +142,9 @@ class PhoneAuthState extends State<PhoneAuth> {
       print(decodedResponse['user']);
       User user = User.fromJson(decodedResponse);
 
-      Navigator.push(context, MaterialPageRoute(
-          builder: (context) => AppScreen(user: user)
-      ));
-    }else {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => AppScreen(user: user)));
+    } else {
       FirebaseAuth.instance.signOut();
       print("validation error: ${decodedResponse["error"]}");
       print("Firebase user logged out");
@@ -145,40 +152,61 @@ class PhoneAuthState extends State<PhoneAuth> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
         body: new Center(
-            child: Container(
-                decoration: BoxDecoration(color: Colors.white),
-                padding: EdgeInsets.all(25.0),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      TextField(
-                          decoration:
-                              InputDecoration(hintText: 'Phone number'),
-                          onChanged: (value) {
-                            this.phoneNo = value;
-                          }),
-                      Container(
-                          padding: EdgeInsets.only(top: 15.0, right: 8.0, bottom: 15.0),
-                          decoration: BoxDecoration(),
-                          child: Text(
-                              "By signing up, you confirm that you agree to our Terms "
-                                  "of Use and have read and understood our Privacy Policy."
-                                  " You will receive an SMS to confirm your phone number."
-                                  " SMS fee may apply.",
-                              style: TextStyle(fontSize: 12.0))),
+            child: FutureBuilder(
+                future: country,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return Container(
+                        decoration: BoxDecoration(color: Colors.white),
+                        padding: EdgeInsets.all(25.0),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              TextField(
+                                  decoration: InputDecoration(
+                                      hintText:
+                                          '${snapshot.data.dialingCode}Phone number'),
+                                  onChanged: (value) {
+                                    this.phoneNo = value;
+                                  }),
+                              Container(
+                                  padding: EdgeInsets.only(
+                                      top: 15.0, right: 8.0, bottom: 15.0),
+                                  decoration: BoxDecoration(),
+                                  child: Text(
+                                      "By signing up, you confirm that you agree to our Terms "
+                                      "of Use and have read and understood our Privacy Policy."
+                                      " You will receive an SMS to confirm your phone number."
+                                      " SMS fee may apply.",
+                                      style: TextStyle(fontSize: 12.0))),
+                              RaisedButton(
+                                  onPressed: verifyPhone,
+                                  child: Text("Verify"),
+                                  textColor: Colors.white,
+                                  elevation: 7.0,
+                                  color: Colors.blue)
+                            ]));
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                        child: Column(children: <Widget>[
+                      Text('Error: ${snapshot.error}',
+                          style:
+                              TextStyle(fontSize: 14.0, color: Colors.white)),
                       RaisedButton(
-                          onPressed: verifyPhone,
-                          child: Text("Verify"),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text("Back"),
                           textColor: Colors.white,
                           elevation: 7.0,
                           color: Colors.blue)
-                    ]))));
+                    ]));
+                  }
+                })));
   }
-
-//  verifyPhone
 }
