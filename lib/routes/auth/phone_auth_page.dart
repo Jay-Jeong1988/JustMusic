@@ -190,7 +190,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
                                                 fontWeight: FontWeight.normal,
                                                 color: Color.fromRGBO(
                                                     80, 80, 80, 1.0)))),
-                                    onPressed: ()async {
+                                    onPressed: () async {
                                       Country result = await Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -198,20 +198,23 @@ class _PhoneAuthState extends State<PhoneAuth> {
                                                   CountryCodeWidget(
                                                       selectedCountry:
                                                           _selectedCountry)));
-                                      setState((){
-                                        _selectedCountry = result;
-                                        _controller.clear();
-                                      });
+                                      if (result != null) {
+                                        setState(() {
+                                          _selectedCountry = result;
+                                          _controller.clear();
+                                        });
+                                      }
                                     })),
                             Expanded(
                                 child: TextField(
-                                  controller: _controller,
+                                    controller: _controller,
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
                                         hintText: 'Phone number'),
                                     onChanged: (value) {
-                                      this.phoneNo = "+${_selectedCountry.dialingCode}$value";
+                                      this.phoneNo =
+                                          "+${_selectedCountry.dialingCode}$value";
                                     }))
                           ])),
                       Container(
