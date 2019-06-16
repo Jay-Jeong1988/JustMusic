@@ -5,6 +5,8 @@ import './routes/profile/profile_page.dart';
 import './global_components/navbar.dart';
 import './global_components/modal_bottom_sheet.dart';
 import './routes/auth/country_code_widget.dart';
+import './models/country.dart';
+import './utils/locationUtil.dart';
 
 void main() => runApp(App());
 
@@ -28,10 +30,16 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
+  Future<Country> countryFuture;
+  Country userCountry;
   List<Widget> navTabs;
   int _clicked = 0;
 
   void initState() {
+    countryFuture = getCountryInstance();
+    countryFuture.then((country) {
+      userCountry = country;
+    });
     print("current user: ${widget.user}");
     this.navTabs = [
       HomePage(
@@ -39,7 +47,7 @@ class _AppScreenState extends State<AppScreen> {
       ),
       Center(child: Text("?", style: TextStyle(color: Colors.white))),
       Center(child: Text("?", style: TextStyle(color: Colors.white))),
-      CountryCodeWidget(),
+      Center(child: Text("?", style: TextStyle(color: Colors.white))),
       ProfilePage(widget.user),
     ];
   }
@@ -67,7 +75,7 @@ class _AppScreenState extends State<AppScreen> {
                 _clicked = index;
               });
             } else {
-              setModalBottomSheet(context);
+              setModalBottomSheet(context, userCountry);
             }
           } else
             setState(() {
@@ -78,11 +86,32 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Stack(
-            children: [
-              navTabs[_clicked],
-              NavBar(navButton)
-            ]));
+    return FutureBuilder(
+        future: countryFuture,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Scaffold(
+                body: Stack(
+                    children: [
+                      navTabs[_clicked],
+                      NavBar(navButton)
+                    ]));
+          }else if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+                child: Column(children: <Widget>[
+                  Text('Error: ${snapshot.error}',
+                      style:
+                      TextStyle(fontSize: 14.0, color: Colors.white)),
+                  RaisedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text("Exit"),
+                      textColor: Colors.white,
+                      elevation: 7.0,
+                      color: Colors.blue)
+                ]));}});
+
   }
 }

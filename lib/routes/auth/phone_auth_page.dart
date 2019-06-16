@@ -4,10 +4,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/user.dart';
 import '../../main.dart';
-import '../../utils/locationUtil.dart';
+import './country_code_widget.dart';
 import '../../models/country.dart';
 
 class PhoneAuth extends StatefulWidget {
+  PhoneAuth({@required this.country});
+  Country country;
   @override
   _PhoneAuthState createState() => _PhoneAuthState();
 }
@@ -16,10 +18,12 @@ class _PhoneAuthState extends State<PhoneAuth> {
   String phoneNo;
   String smsCode;
   String verificationId;
-  Future<Country> country;
+  Country _selectedCountry;
+  TextEditingController _controller = new TextEditingController();
 
   @override
   void initState() {
+    this._selectedCountry = widget.country;
     super.initState();
     _signOut();
     FirebaseAuth.instance.onAuthStateChanged.listen((FirebaseUser user) {
@@ -27,7 +31,6 @@ class _PhoneAuthState extends State<PhoneAuth> {
           user == null ? "No current firebase user" : "Firebase user online";
       print("AuthState: $authState");
     });
-    this.country = getCountryInstance();
   }
 
   Future<void> _signOut() async {
@@ -156,57 +159,77 @@ class _PhoneAuthState extends State<PhoneAuth> {
   Widget build(BuildContext context) {
     return new Scaffold(
         body: new Center(
-            child: FutureBuilder(
-                future: country,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return Container(
-                        decoration: BoxDecoration(color: Colors.white),
-                        padding: EdgeInsets.all(25.0),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              TextField(
-                                  decoration: InputDecoration(
-                                      hintText:
-                                          '${snapshot.data.dialingCode}Phone number'),
-                                  onChanged: (value) {
-                                    this.phoneNo = value;
-                                  }),
-                              Container(
-                                  padding: EdgeInsets.only(
-                                      top: 15.0, right: 8.0, bottom: 15.0),
-                                  decoration: BoxDecoration(),
-                                  child: Text(
-                                      "By signing up, you confirm that you agree to our Terms "
-                                      "of Use and have read and understood our Privacy Policy."
-                                      " You will receive an SMS to confirm your phone number."
-                                      " SMS fee may apply.",
-                                      style: TextStyle(fontSize: 12.0))),
-                              RaisedButton(
-                                  onPressed: verifyPhone,
-                                  child: Text("Verify"),
-                                  textColor: Colors.white,
-                                  elevation: 7.0,
-                                  color: Colors.blue)
-                            ]));
-                  } else if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(
-                        child: Column(children: <Widget>[
-                      Text('Error: ${snapshot.error}',
-                          style:
-                              TextStyle(fontSize: 14.0, color: Colors.white)),
+            child: Container(
+                decoration: BoxDecoration(color: Colors.white),
+                padding: EdgeInsets.all(25.0),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                          decoration: BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(
+                                      color: Color.fromRGBO(140, 140, 140, 1.0),
+                                      style: BorderStyle.solid,
+                                      width: 1.0))),
+                          child: Row(mainAxisSize: MainAxisSize.max, children: [
+                            Flexible(
+                                child: RawMaterialButton(
+                                    child: Container(
+                                        padding: EdgeInsets.only(left: 0.0),
+                                        decoration: BoxDecoration(
+                                            border: Border(
+                                                right: BorderSide(
+                                                    color: Color.fromRGBO(
+                                                        140, 140, 140, 1.0),
+                                                    style: BorderStyle.solid,
+                                                    width: 1.0))),
+                                        child: Text(
+                                            '${_selectedCountry.isoCode} +${_selectedCountry.dialingCode} \u25BE  ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                color: Color.fromRGBO(
+                                                    80, 80, 80, 1.0)))),
+                                    onPressed: ()async {
+                                      Country result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  CountryCodeWidget(
+                                                      selectedCountry:
+                                                          _selectedCountry)));
+                                      setState((){
+                                        _selectedCountry = result;
+                                        _controller.clear();
+                                      });
+                                    })),
+                            Expanded(
+                                child: TextField(
+                                  controller: _controller,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        hintText: 'Phone number'),
+                                    onChanged: (value) {
+                                      this.phoneNo = "+${_selectedCountry.dialingCode}$value";
+                                    }))
+                          ])),
+                      Container(
+                          padding: EdgeInsets.only(
+                              top: 15.0, right: 8.0, bottom: 15.0),
+                          decoration: BoxDecoration(),
+                          child: Text(
+                              "By signing up, you confirm that you agree to our Terms "
+                              "of Use and have read and understood our Privacy Policy."
+                              " You will receive an SMS to confirm your phone number."
+                              " SMS fee may apply.",
+                              style: TextStyle(fontSize: 12.0))),
                       RaisedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text("Back"),
+                          onPressed: verifyPhone,
+                          child: Text("Verify"),
                           textColor: Colors.white,
                           elevation: 7.0,
                           color: Colors.blue)
-                    ]));
-                  }
-                })));
+                    ]))));
   }
 }

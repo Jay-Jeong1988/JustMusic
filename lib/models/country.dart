@@ -1528,4 +1528,8 @@ class Country {
       dialingCode: dialingCode ?? this.dialingCode,
     );
   }
+
+//  Future<List<Country>> getAllCountries (){
+//
+//  }
 }
