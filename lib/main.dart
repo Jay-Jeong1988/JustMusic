@@ -39,6 +39,7 @@ class _AppScreenState extends State<AppScreen> {
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
       userCountry = country;
+      print("userCountry: ${userCountry}");
     });
     print("current user: ${widget.user}");
     this.navTabs = [

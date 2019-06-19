@@ -19,7 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  firebase_core:
   firebase_auth:
 
   http: ^0.12.0+2
