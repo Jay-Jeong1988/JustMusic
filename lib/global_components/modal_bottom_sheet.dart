@@ -70,7 +70,7 @@ void setModalBottomSheet(context, country) {
       padding: const EdgeInsets.only(left: 48, bottom: 14, right: 48),
       child: Center(
           child: Text(
-            'You need a NotPro \n account to continue',
+            'You need a JustMusic \n account to continue',
             textAlign: TextAlign.center,
             softWrap: true,
             style: TextStyle(

@@ -12,7 +12,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'NotPro',
+        title: 'JustMusic',
         theme: ThemeData(canvasColor: Colors.transparent),
         home: AppScreen());
   }

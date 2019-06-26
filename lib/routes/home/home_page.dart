@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notpro/routes/home/components/video.dart';
+import 'package:JustMusic/routes/home/components/video.dart';
 
 
 class HomePage extends StatefulWidget {

@@ -1,6 +1,6 @@
-# notpro
+# JustMusic
 
-Film every moment
+Simplest random youtube music player
 
 ## Getting Started
 
