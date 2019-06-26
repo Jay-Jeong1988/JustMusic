@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import './routes/home/home_page.dart';
 import './models/user.dart';
-import './routes/profile/profile_page.dart';
+import './routes/home/home_page.dart';
 import './global_components/navbar.dart';
-import './global_components/modal_bottom_sheet.dart';
-import './routes/auth/country_code_widget.dart';
 import './models/country.dart';
 import './utils/locationUtil.dart';
 
@@ -29,61 +26,53 @@ class AppScreen extends StatefulWidget {
   _AppScreenState createState() => _AppScreenState();
 }
 
-class _AppScreenState extends State<AppScreen> {
+class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMixin {
   Future<Country> countryFuture;
   Country userCountry;
-  List<Widget> navTabs;
-  int _clicked = 0;
+  Widget currentPage;
+  Animation<double> _animation;
+  AnimationController _animationController;
+
+  void getSelectedPageFromChild(page) {
+    setState((){
+      currentPage = page;
+    });
+  }
 
   void initState() {
+    currentPage = HomePage(
+      key: PageStorageKey('Page1'),
+    );
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
       userCountry = country;
       print("userCountry: ${userCountry}");
     });
     print("current user: ${widget.user}");
-    this.navTabs = [
-      HomePage(
-        key: PageStorageKey('Page1'),
-      ),
-      Center(child: Text("?", style: TextStyle(color: Colors.white))),
-      Center(child: Text("?", style: TextStyle(color: Colors.white))),
-      Center(child: Text("?", style: TextStyle(color: Colors.white))),
-      ProfilePage(widget.user),
-    ];
+
+
+    _animationController = AnimationController(
+        vsync: this,
+        duration: Duration(
+            seconds: 2)); //specify the duration for the animation & include `this` for the vsyc
+    _animation = Tween<double>(begin: 0, end: 50).animate(
+        _animationController); //use Tween animation here, to animate between the values of 1.0 & 2.5.
+
+    _animation.addListener(() {
+      //here, a listener that rebuilds our widget tree when animation.value changes
+      setState(() {});
+      print("dsfd");
+    });
+
+    _animation.addStatusListener((status) {
+      //AnimationStatus gives the current status of our animation, we want to go back to its previous state after completing its animation
+      if (status == AnimationStatus.completed) {
+        _animationController
+            .reverse(); //reverse the animation back here if its completed
+      }
+    });
   }
 
-  Widget navButton(IconData icon, int index) {
-    return RawMaterialButton(
-        constraints: BoxConstraints(maxWidth: 40.0, maxHeight: 40.0),
-        fillColor: Colors.transparent,
-        child: Container(
-            height: 45.0,
-            decoration: _clicked == index
-                ? BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(color: Colors.white, width: 3.0)))
-                : null,
-            child: Icon(icon,
-                color: _clicked == index
-                    ? Colors.white
-                    : Color.fromRGBO(190, 190, 190, 1),
-                size: 30.0)),
-        onPressed: () {
-          if (index == 4) {
-            if (widget.user != null) {
-              setState(() {
-                _clicked = index;
-              });
-            } else {
-              setModalBottomSheet(context, userCountry);
-            }
-          } else
-            setState(() {
-              _clicked = index;
-            });
-        });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +83,8 @@ class _AppScreenState extends State<AppScreen> {
             return Scaffold(
                 body: Stack(
                     children: [
-                      navTabs[_clicked],
-                      NavBar(navButton)
+                      currentPage,
+                      NavBar(widget.user, userCountry, getSelectedPageFromChild)
                     ]));
           }else if (snapshot.connectionState ==
               ConnectionState.waiting) {

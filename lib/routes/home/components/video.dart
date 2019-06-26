@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
-  VideoPlayerScreen({Key key}) : super(key: key);
+  String sourcePath;
+  PageController _pageController;
+  VideoPlayerScreen(sourcePath, _pageController){
+    this.sourcePath = sourcePath;
+    this._pageController = _pageController;
+  }
 
   @override
   _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
@@ -18,13 +23,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // offers several different constructors to play videos from assets, files,
     // or the internet.
 
-    _controller = VideoPlayerController.asset('assets/videos/example3.mp4');
+    _controller = VideoPlayerController.asset(widget.sourcePath)
+        ..addListener((){
+      final bool isPlaying = _controller.value.isPlaying;
+      if(_controller.value.position >= _controller.value.duration) autoSwipe(widget._pageController);
+    });
 
     _initializeVideoPlayerFuture = _controller.initialize();
     _controller.play();
-    _controller.setLooping(true);
+//    _controller.setLooping(true);
 
     super.initState();
+  }
+
+  void autoSwipe(PageController pageController) {
+    setState((){
+      pageController.nextPage(duration: Duration(milliseconds: 1000), curve: Curves.decelerate);
+    });
   }
 
   @override
@@ -44,18 +59,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             future: _initializeVideoPlayerFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                // If the VideoPlayerController has finished initialization, use
-                // the data it provides to limit the Aspect Ratio of the Video
-//            return AspectRatio(
-//              aspectRatio: _controller.value.aspectRatio,
-//              // Use the VideoPlayer widget to display the video
-//              child: RotatedBox(quarterTurns: 1, child: VideoPlayer(_controller)),
-//            );
-                return VideoPlayer(_controller);
+                return Center(child: Stack(children: [Container(height: MediaQuery.of(context).size.height,child: Center(child: AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller)))),
+                Positioned(width: MediaQuery.of(context).size.width, bottom: 35.0,child: VideoProgressIndicator(_controller,
+                    allowScrubbing: false,
+                    colors: VideoProgressColors(playedColor: Color.fromRGBO(250, 250, 250, 0.7),
+                    backgroundColor: Color.fromRGBO(100, 100, 100, 0.7)),
+                    padding: EdgeInsets.symmetric(vertical: 15.0),)),
+                ]));
 //              return RotatedBox(quarterTurns: 1, child: VideoPlayer(_controller));
               } else {
-                // If the VideoPlayerController is still initializing, show a
-                // loading spinner
                 return Center(child: CircularProgressIndicator());
               }
             },
