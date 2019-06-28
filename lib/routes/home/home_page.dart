@@ -17,11 +17,12 @@ class _HomePageState extends State<HomePage> {
   String current = "assets/videos/example3.mp4";
   String latter = "assets/videos/example4.mp4";
   String lattere = "assets/videos/example1.mp4";
+  String laaa = "assets/videos/example5.mp4";
   List<String> _sourcePaths;
 
   @override
   void initState() {
-    _sourcePaths = [former, lattere, current, latter];
+    _sourcePaths = [former, lattere, current, latter, laaa];
 
     pageView = PageView(
       controller: _pageController,
@@ -34,6 +35,7 @@ class _HomePageState extends State<HomePage> {
         VideoPlayerScreen(_sourcePaths[1], _pageController),
         VideoPlayerScreen(_sourcePaths[2], _pageController),
         VideoPlayerScreen(_sourcePaths[3], _pageController),
+        VideoPlayerScreen(_sourcePaths[4], _pageController),
       ]
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/country.dart';
-import '../../global_components/empty_app_bar.dart';
+import '../../global_components/empty_widgets.dart';
 
 class CountryCodeWidget extends StatefulWidget {
   CountryCodeWidget({@required selectedCountry});
@@ -33,10 +33,6 @@ class _CountryCodeWidgetState extends State<CountryCodeWidget> {
 
   void _selectItem(Country e) {
     Navigator.pop(context, e);
-  }
-
-  Widget _buildEmptySearchWidget(BuildContext context) {
-    return Center(child: Container(padding: EdgeInsets.only(top: 20.0), child: Text('No Country Found', style: TextStyle(color: Colors.white))));
   }
 
   @override
@@ -90,7 +86,7 @@ class _CountryCodeWidgetState extends State<CountryCodeWidget> {
                   padding: EdgeInsets.all(5.0),
                   child: ListView(children: []
                         ..addAll(filteredCountries.isEmpty ?
-                        [_buildEmptySearchWidget(context)] : filteredCountries.map((country){
+                        [EmptySearchWidget(textInput: "No country found.")] : filteredCountries.map((country){
                           return ListTile(
                               title: Text(country.name,
                               style: TextStyle(color: Colors.white)),

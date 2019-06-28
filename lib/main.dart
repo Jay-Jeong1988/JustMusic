@@ -55,7 +55,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
         vsync: this,
         duration: Duration(
             seconds: 2)); //specify the duration for the animation & include `this` for the vsyc
-    _animation = Tween<double>(begin: 0, end: 50).animate(
+    _animation = Tween<double>(begin: 0, end: 100).animate(
         _animationController); //use Tween animation here, to animate between the values of 1.0 & 2.5.
 
     _animation.addListener(() {

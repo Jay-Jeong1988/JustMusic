@@ -64,7 +64,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     child: VideoPlayer(_controller)))),
                 Positioned(width: MediaQuery.of(context).size.width, bottom: 35.0,child: VideoProgressIndicator(_controller,
                     allowScrubbing: false,
-                    colors: VideoProgressColors(playedColor: Color.fromRGBO(250, 250, 250, 0.7),
+                    colors: VideoProgressColors(playedColor: Color.fromRGBO(255, 255, 255, 1),
                     backgroundColor: Color.fromRGBO(100, 100, 100, 0.7)),
                     padding: EdgeInsets.symmetric(vertical: 15.0),)),
                 ]));
