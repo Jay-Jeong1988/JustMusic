@@ -12,12 +12,15 @@ class CategoryPage extends StatefulWidget {
 class CategoryPageState extends State<CategoryPage> {
   Future<List<dynamic>> futureCategories;
   List<Category> _allCategories = [];
-  List<Category> _selectedCategories = new List<Category>();
+  List<Category> _selectedCategories = [];
 
   @override
   void initState() {
     futureCategories = getCategoriesRequest();
     futureCategories.then((List<dynamic> categories){
+      categories.sort((a, b) {
+        return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+      });
       setState((){
         _allCategories.addAll(
         categories.map((category){
@@ -56,20 +59,29 @@ class CategoryPageState extends State<CategoryPage> {
         return Scaffold(
             body: _allCategories.isEmpty ?
             EmptySearchWidget(textInput: "No existing category.") :
-            Container(child: CustomScrollView(
+            Stack(children: [Container(child: CustomScrollView(
                 slivers: [
                   SliverGrid(gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(childAspectRatio: 0.667,crossAxisCount: 3),
                       delegate: SliverChildListDelegate([]
                         ..addAll(_allCategories.map((category){
-                          return Stack(children: [Container(
+                          return GestureDetector(
+                              onTap: (){
+                                setState((){
+                                  _selectedCategories.contains(category) ? _selectedCategories.remove(category) : _selectedCategories.add(category);
+                                });
+                              },
+                              child: Stack(children: [Container(
                               decoration: BoxDecoration(
                                   image: DecorationImage(
                                       image: NetworkImage(category.imageUrl))),
-                              child: Center(child: Text(category.title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0,color: Colors.white)))),]);
+                              ),
+                          _selectedCategories.contains(category) ? Container() : EmptyShadowGrid(),
+                                Center(child: Text(category.title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0,color: Colors.white)))]));
                         }))))
                 ]
             )
-            ));
+            ),
+            EmptyShadowAppBar()]));
       }else if(snapshot.connectionState == ConnectionState.waiting) {
         return CircularProgressIndicator();
       }else if (snapshot.hasError) {

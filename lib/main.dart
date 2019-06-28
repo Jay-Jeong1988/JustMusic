@@ -84,7 +84,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
                 body: Stack(
                     children: [
                       currentPage,
-                      NavBar(widget.user, userCountry, getSelectedPageFromChild)
+                      NavBar(widget.user, userCountry, getSelectedPageFromChild),
                     ]));
           }else if (snapshot.connectionState ==
               ConnectionState.waiting) {
