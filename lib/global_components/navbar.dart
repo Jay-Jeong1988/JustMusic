@@ -9,7 +9,7 @@ class NavBar extends StatefulWidget {
   var userCountry;
   Function setSelectedPageToParent;
 
-  NavBar(user, userCountry, getSelectedPageFromChild){
+  NavBar(user, userCountry, getSelectedPageFromChild) {
     this.user = user;
     this.userCountry = userCountry;
     this.setSelectedPageToParent = getSelectedPageFromChild;
@@ -19,7 +19,7 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> {
-  int _clicked = 0;
+  int _clicked = 1;
   List<Widget> navPages;
 
   void initState() {
@@ -28,8 +28,9 @@ class _NavBarState extends State<NavBar> {
         key: PageStorageKey('Page1'),
       ),
       CategoryPage(),
-      Center(child: Text(
-          "Upload New Music", style: TextStyle(color: Colors.white))),
+      Center(
+          child:
+              Text("Upload New Music", style: TextStyle(color: Colors.white))),
       Center(child: Text("?", style: TextStyle(color: Colors.white))),
       ProfilePage(widget.user),
     ];
@@ -37,15 +38,15 @@ class _NavBarState extends State<NavBar> {
 
   Widget navButton(IconData icon, int index) {
     return RawMaterialButton(
-      elevation: 0,
+        elevation: 0,
         constraints: BoxConstraints(maxWidth: 40.0, maxHeight: 70.0),
         fillColor: Colors.transparent,
         child: Container(
             height: 50.0,
             decoration: _clicked == index
                 ? BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(color: Colors.white, width: 3.0)))
+                    border: Border(
+                        bottom: BorderSide(color: Colors.white, width: 3.0)))
                 : null,
             child: Icon(icon,
                 color: _clicked == index
@@ -55,8 +56,8 @@ class _NavBarState extends State<NavBar> {
         onPressed: () {
 //          _animationController.forward();
           if (index == 4 && widget.user == null) {
-              setModalBottomSheet(context, widget.userCountry);
-          }else {
+            setModalBottomSheet(context, widget.userCountry);
+          } else {
             setState(() {
               _clicked = index;
             });
@@ -67,22 +68,21 @@ class _NavBarState extends State<NavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        alignment: Alignment(0, 1),
+    return Positioned(
+        bottom: 0,
         child: BottomAppBar(
+            elevation: 0,
             color: Colors.transparent,
             child: Container(
+              width: MediaQuery.of(context).size.width,
               height: 50.0,
-              decoration: BoxDecoration(
-                boxShadow: [BoxShadow(
+              decoration: BoxDecoration(boxShadow: [
+                BoxShadow(
                   spreadRadius: 5.0,
                   color: Color.fromRGBO(0, 0, 0, 0.4),
-                  blurRadius: 15.0,
-                )],
-                  border: Border(
-                      top: BorderSide(
-                          color: Color.fromRGBO(190, 190, 190, 0.7),
-                          width: 0.2))),
+                  blurRadius: 10.0,
+                )
+              ]),
               padding: EdgeInsets.only(left: 15.0, right: 15.0),
               child: new Row(
                 mainAxisSize: MainAxisSize.max,
@@ -96,5 +96,5 @@ class _NavBarState extends State<NavBar> {
                 ],
               ),
             )));
-
-  }}
+  }
+}

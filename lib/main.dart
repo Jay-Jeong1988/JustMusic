@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import './models/user.dart';
-import './routes/home/home_page.dart';
+import './routes/category/category_page.dart';
 import './global_components/navbar.dart';
 import './models/country.dart';
 import './utils/locationUtil.dart';
@@ -40,9 +40,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   }
 
   void initState() {
-    currentPage = HomePage(
-      key: PageStorageKey('Page1'),
-    );
+    currentPage = CategoryPage();
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
       userCountry = country;

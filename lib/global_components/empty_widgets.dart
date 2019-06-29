@@ -10,6 +10,9 @@ class  EmptyAppBar  extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class  EmptyShadowAppBar  extends StatelessWidget {
+  final String text;
+  EmptyShadowAppBar({this.text});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -17,10 +20,14 @@ class  EmptyShadowAppBar  extends StatelessWidget {
         decoration: BoxDecoration(
       boxShadow: [BoxShadow(
         color: Color.fromRGBO(0, 0, 0, 0.4),
-      blurRadius: 15.0,
+      blurRadius: 10.0,
         spreadRadius: 5.0
       )]
-    ));
+    ),child: this.text != null ? Center(child: Text("Choose genres you like",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontFamily: 'NotoSans',
+            color: Colors.white, fontSize: 16))) : Container());
   }
 }
 
