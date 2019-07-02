@@ -11,6 +11,7 @@ Future<Country> getCountryInstance() async {
     currentLocation = await geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
     placemark = await geolocator.placemarkFromPosition(currentLocation);
+    print("cL: ${currentLocation} , pM: ${placemark}");
   } catch (e) {
     print(e);
   }

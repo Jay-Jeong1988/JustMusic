@@ -112,6 +112,7 @@ class CategoryPageState extends State<CategoryPage> {
                                               child: Text(
                                                   category.title.toUpperCase(),
                                                   style: TextStyle(
+                                                    shadows: [Shadow(color: Colors.black, blurRadius: 3.0)],
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 16.0,
@@ -119,7 +120,7 @@ class CategoryPageState extends State<CategoryPage> {
                                                               .contains(
                                                                   category)
                                                           ? Colors.white
-                                                          : Colors.white70)))
+                                                          : Color.fromRGBO(255, 255, 255, 0.6))))
                                         ]));
                                   })))))
                       ])),
