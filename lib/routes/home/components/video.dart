@@ -23,10 +23,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     // offers several different constructors to play videos from assets, files,
     // or the internet.
 
-    _controller = VideoPlayerController.asset(widget.sourcePath)
+    _controller = VideoPlayerController.network(widget.sourcePath)
         ..addListener((){
       final bool isPlaying = _controller.value.isPlaying;
-      if(_controller.value.position >= _controller.value.duration) autoSwipe(widget._pageController);
+      if(_controller.value.duration != null && _controller.value.position >= _controller.value.duration) autoSwipe(widget._pageController);
     });
 
     _initializeVideoPlayerFuture = _controller.initialize();

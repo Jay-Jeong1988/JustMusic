@@ -45,9 +45,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   void initState() {
     AKLoader(akPath: "ak.json").load().then((AK ak){
       _storage.write(key: "ak", value: ak.apiKey);
-      print(_storage.read(key: "ak"));
     });
-
 
     currentPage = CategoryPage();
     countryFuture = getCountryInstance();

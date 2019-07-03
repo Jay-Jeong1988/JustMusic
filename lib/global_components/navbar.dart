@@ -31,7 +31,7 @@ class _NavBarState extends State<NavBar> {
       Center(
           child:
               Text("Upload New Music", style: TextStyle(color: Colors.white))),
-      Center(child: Text("?", style: TextStyle(color: Colors.white))),
+      Container(),
       ProfilePage(widget.user),
     ];
   }
