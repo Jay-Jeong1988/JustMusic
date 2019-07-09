@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class User {
   final String id;
   final String accountId;
@@ -35,6 +37,27 @@ class User {
         birthDay: user['profile']['birthDay']
       )
     );
+  }
+
+  static String toJson(User user){
+    Map<String, dynamic> self = new Map<String, dynamic>();
+    self["_id"] = user.id;
+    self["accountId"] = user.accountId;
+    self["password"] = user.password;
+    self["nickname"] = user.nickname;
+
+    self["contactInfo"] = Map<String, dynamic>();
+    self["contactInfo"]['_id'] = user.contactInfo.id;
+    self["contactInfo"]['email'] = user.contactInfo.email;
+    self["contactInfo"]['phoneNumber'] = user.contactInfo.phoneNumber;
+
+    self["profile"] = Map<String, dynamic>();
+    self["profile"]["_id"] = user.profile.id;
+    self["profile"]["firstName"] = user.profile.firstName;
+    self["profile"]["lastName"] = user.profile.lastName;
+    self["profile"]["birthDay"] = user.profile.birthDay;
+
+    return jsonEncode(self);
   }
 }
 

@@ -127,7 +127,8 @@ void setModalBottomSheet(context, country) {
   showModalBottomSheet(
       context: context,
       builder: (BuildContext bc) {
-        return Container(
+        return SingleChildScrollView(
+          child: Container(
             padding: const EdgeInsets.only(top: 0.0),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -145,6 +146,6 @@ void setModalBottomSheet(context, country) {
                 _agreeNotice,
                 _login
               ],
-            ));
+            )));
       });
 }

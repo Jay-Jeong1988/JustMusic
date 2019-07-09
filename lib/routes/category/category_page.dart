@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/category.dart';
 import '../../global_components/empty_widgets.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:math';
 
 class CategoryPage extends StatefulWidget {
@@ -23,7 +21,7 @@ class CategoryPageState extends State<CategoryPage> {
 
   @override
   void initState() {
-    futureCategories = getCategoriesRequest();
+    futureCategories = Category.getCategoriesRequest();
     futureCategories.then((List<dynamic> categories) {
       categories.sort((a, b) {
         return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
@@ -35,25 +33,6 @@ class CategoryPageState extends State<CategoryPage> {
         print(_allCategories);
       });
     });
-  }
-
-  Future<List<dynamic>> getCategoriesRequest() async {
-    var response;
-    var url = 'http://10.0.2.2:3000/music/categories';
-    try {
-      response = await http.get(url);
-    } catch (e) {
-      print(e);
-    }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-
-    if (response.statusCode == 200) {
-      print(decodedResponse);
-      return decodedResponse;
-    } else {
-      throw Exception('Failed to load categories');
-    }
   }
 
   @override
@@ -128,7 +107,7 @@ class CategoryPageState extends State<CategoryPage> {
                     ]),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[

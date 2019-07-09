@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import './models/user.dart';
 import './routes/category/category_page.dart';
@@ -34,7 +35,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   Widget currentPage;
   Animation<double> _animation;
   AnimationController _animationController;
-  final _storage = FlutterSecureStorage();
+  FlutterSecureStorage _storage = FlutterSecureStorage();
 
   void getSelectedPageFromChild(page) {
     setState((){
@@ -42,10 +43,23 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
     });
   }
 
-  void initState() {
-    AKLoader(akPath: "ak.json").load().then((AK ak){
-      _storage.write(key: "ak", value: ak.apiKey);
+  Future<dynamic> _storeKey() async{
+    await AKLoader(akPath: "ak.json").load().then((AK ak){
+    _storage.write(key: "ak", value: ak.apiKey).catchError((error){
+      print(error);
+      });
     });
+  }
+
+  void initState() {
+    _storage.deleteAll().then((result){
+      _storeKey();
+    }).catchError((error){
+      print(error);
+    });
+    if (widget.user != null) {
+      _storage.write(key: "user", value: User.toJson(widget.user));
+    }
 
     currentPage = CategoryPage();
     countryFuture = getCountryInstance();
@@ -89,11 +103,11 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
                 body: Stack(
                     children: [
                       currentPage,
-                      NavBar(widget.user, userCountry, getSelectedPageFromChild),
+                      NavBar(user: widget.user, userCountry: userCountry, getSelectedPageFromChild: getSelectedPageFromChild),
                     ]));
           }else if (snapshot.connectionState ==
               ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Scaffold(body: Stack(children: [Center(child: CircularProgressIndicator()), NavBar(user: widget.user, getSelectedPageFromChild: getSelectedPageFromChild)]));
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[
@@ -106,7 +120,11 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
                       textColor: Colors.white,
                       elevation: 7.0,
                       color: Colors.blue)
-                ]));}});
+                ]));
+          }else{
+            return Center();
+          }
+        });
 
   }
 }

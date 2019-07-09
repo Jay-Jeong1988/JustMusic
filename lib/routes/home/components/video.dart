@@ -16,6 +16,7 @@ class VideoPlayerScreen extends StatefulWidget {
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
+  bool _isPlaying;
 
   @override
   void initState() {
@@ -25,7 +26,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     _controller = VideoPlayerController.network(widget.sourcePath)
         ..addListener((){
-      final bool isPlaying = _controller.value.isPlaying;
+          _isPlaying = _controller.value.isPlaying;
       if(_controller.value.duration != null && _controller.value.position >= _controller.value.duration) autoSwipe(widget._pageController);
     });
 
@@ -67,6 +68,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     colors: VideoProgressColors(playedColor: Color.fromRGBO(255, 255, 255, 1),
                     backgroundColor: Color.fromRGBO(100, 100, 100, 0.7)),
                     padding: EdgeInsets.symmetric(vertical: 15.0),)),
+                  _controller.value.isPlaying ? Container() : Center(child: Icon(Icons.play_arrow, color: Color.fromRGBO(255, 255, 255, 0.4), size: 75.0)),
                 ]));
 //              return RotatedBox(quarterTurns: 1, child: VideoPlayer(_controller));
               } else {
@@ -74,33 +76,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               }
             },
           ),
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: () {
-//          // Wrap the play or pause in a call to `setState`. This ensures the
-//          // correct icon is shown
-//          setState(() {
-//            // If the video is playing, pause it.
-//            if (_controller.value.isPlaying) {
-//              _controller.pause();
-//            } else {
-//              // If the video is paused, play it
-//              _controller.play();
-//            }
-//          });
-//        },
-//        // Display the correct icon depending on the state of the player.
-//        child: Icon(
-//          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-//        ),
-//      ), // This trailing comma makes auto-formatting nicer for build methods.
         ),
         onTap: (){
-          if (_controller.value.isPlaying) {
-            _controller.pause();
-          } else {
-            // If the video is paused, play it
-            _controller.play();
-          }
+          setState((){
+            if (_controller.value.isPlaying) {
+              _controller.pause();
+                _isPlaying = false;
+            } else {
+              // If the video is paused, play it
+              _controller.play();
+              _isPlaying = true;
+            }
+          });
         });
   }
 }

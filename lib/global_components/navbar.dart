@@ -3,13 +3,14 @@ import '../global_components/modal_bottom_sheet.dart';
 import '../routes/home/home_page.dart';
 import '../routes/profile/profile_page.dart';
 import '../routes/category/category_page.dart';
+import '../routes/create/upload_music_page.dart';
 
 class NavBar extends StatefulWidget {
   var user;
   var userCountry;
   Function setSelectedPageToParent;
 
-  NavBar(user, userCountry, getSelectedPageFromChild) {
+  NavBar({user, userCountry, getSelectedPageFromChild}) {
     this.user = user;
     this.userCountry = userCountry;
     this.setSelectedPageToParent = getSelectedPageFromChild;
@@ -28,11 +29,9 @@ class _NavBarState extends State<NavBar> {
         key: PageStorageKey('Page1'),
       ),
       CategoryPage(),
-      Center(
-          child:
-              Text("Upload New Music", style: TextStyle(color: Colors.white))),
+      UploadMusicPage(),
       Container(),
-      ProfilePage(widget.user),
+      ProfilePage(),
     ];
   }
 
@@ -80,7 +79,7 @@ class _NavBarState extends State<NavBar> {
                 BoxShadow(
                   spreadRadius: 5.0,
                   color: Color.fromRGBO(0, 0, 0, 0.4),
-                  blurRadius: 10.0,
+                  blurRadius: 20.0,
                 )
               ]),
               padding: EdgeInsets.only(left: 15.0, right: 15.0),
