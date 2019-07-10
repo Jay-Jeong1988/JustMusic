@@ -1,5 +1,7 @@
+import 'package:JustMusic/global_components/AK.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/user.dart';
@@ -20,6 +22,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
   String verificationId;
   Country _selectedCountry;
   TextEditingController _controller = new TextEditingController();
+  final _storage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -145,14 +148,31 @@ class _PhoneAuthState extends State<PhoneAuth> {
       print(decodedResponse['user']);
       User user = User.fromJson(decodedResponse);
 
-      Navigator.push(context,
+      _storage.deleteAll().then((result){
+        _storeKey();
+      }).catchError((error){
+        print(error);
+      });
+      if (user != null) {
+        _storage.write(key: "user", value: User.toJson(user));
+      }
+      Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => AppScreen(user: user)));
+
     } else {
       FirebaseAuth.instance.signOut();
       print("validation error: ${decodedResponse["error"]}");
       print("Firebase user logged out");
       throw Exception('Failed to save or load a user');
     }
+  }
+
+  Future<dynamic> _storeKey() async{
+    await AKLoader(akPath: "ak.json").load().then((AK ak){
+      _storage.write(key: "ak", value: ak.apiKey).catchError((error){
+        print(error);
+      });
+    });
   }
 
   @override

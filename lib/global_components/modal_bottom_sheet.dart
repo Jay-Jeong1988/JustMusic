@@ -101,7 +101,7 @@ void setModalBottomSheet(context, country) {
                         fontSize: 16,
                         fontWeight: FontWeight.w400)))),
         onPressed: () {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => PhoneAuth(country: country)),
           );

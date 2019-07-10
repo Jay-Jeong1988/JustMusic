@@ -35,7 +35,6 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   Widget currentPage;
   Animation<double> _animation;
   AnimationController _animationController;
-  FlutterSecureStorage _storage = FlutterSecureStorage();
 
   void getSelectedPageFromChild(page) {
     setState((){
@@ -43,31 +42,13 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
     });
   }
 
-  Future<dynamic> _storeKey() async{
-    await AKLoader(akPath: "ak.json").load().then((AK ak){
-    _storage.write(key: "ak", value: ak.apiKey).catchError((error){
-      print(error);
-      });
-    });
-  }
-
   void initState() {
-    _storage.deleteAll().then((result){
-      _storeKey();
-    }).catchError((error){
-      print(error);
-    });
-    if (widget.user != null) {
-      _storage.write(key: "user", value: User.toJson(widget.user));
-    }
-
     currentPage = CategoryPage();
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
       userCountry = country;
       print("userCountry: ${userCountry}");
     });
-    print("current user: ${widget.user}");
 
 
     _animationController = AnimationController(

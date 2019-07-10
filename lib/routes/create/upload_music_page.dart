@@ -1,19 +1,19 @@
 import 'dart:convert';
+import 'package:JustMusic/routes/profile/profile_page.dart';
+
 import '../../models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../utils/custom_scroll_physics.dart';
+import 'categories_page.dart';
 
 class UploadMusicPage extends StatefulWidget {
-  List<String> selectedCategoryTitles;
-  UploadMusicPage({this.selectedCategoryTitles});
-
   State<UploadMusicPage> createState() => UploadMusicPageState();
 }
 
 class UploadMusicPageState extends State<UploadMusicPage> {
-  String _description;
+  String _comment;
   ScrollController _scrollController =
       ScrollController(initialScrollOffset: 0.0);
   ScrollPhysics _textFieldScrollPhysics = new CustomScrollPhysics();
@@ -22,16 +22,16 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   final _storage = FlutterSecureStorage();
   var _ak;
   Map<String, dynamic> _videoInfo = {};
+  bool _httpError = false;
 
   @override
   void initState() {
     _scrollController.addListener(_textFieldScrollListener);
-    _selectedCategoryTitles = widget.selectedCategoryTitles;
     _storage.read(key: "ak").then((key) {
       setState(() {
         _ak = key;
       });
-    }).catchError((error){
+    }).catchError((error) {
       print(error);
     });
     Category.getCategoriesRequest().then((categories) {
@@ -48,23 +48,24 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     });
   }
 
-  void _getDescription(value){
-    setState((){
-      _description = value;
+  void _getComment(value) {
+    setState(() {
+      _comment = value;
     });
   }
 
-  void _textFieldScrollListener(){
-    if (_scrollController.offset >= _scrollController.position.maxScrollExtent){
+  void _textFieldScrollListener() {
+    if (_scrollController.offset >=
+        _scrollController.position.maxScrollExtent) {
       if (_scrollController.position.axisDirection == AxisDirection.down) {
         print("down");
         print(_textFieldScrollPhysics);
-        setState(() {
-        });
-      }else {
+        setState(() {});
+      } else {
         print("imback");
       }
-    }else if (_scrollController.offset <= _scrollController.position.minScrollExtent){
+    } else if (_scrollController.offset <=
+        _scrollController.position.minScrollExtent) {
       if (_scrollController.position.axisDirection == AxisDirection.up) {
         print("top");
       }
@@ -78,6 +79,8 @@ class UploadMusicPageState extends State<UploadMusicPage> {
       videoId = url.split("v=")[1];
       getYoutubeObject(_getYoutubeV3ApiUrl(_ak, videoId)).then((info) {
         setState(() {
+          _httpError = false;
+          _selectedCategoryTitles = [];
           _videoInfo = info['pageInfo']['totalResults'] >= 1
               ? info
               : new Map<String, dynamic>();
@@ -155,18 +158,18 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           child: Container(
               padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
               child: SingleChildScrollView(
-                physics: _textFieldScrollPhysics,
-                controller: _scrollController,
+                  physics: _textFieldScrollPhysics,
+                  controller: _scrollController,
                   child: Column(children: [
-                Text("$title\n",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: "NotoSans",
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16)),
-                Text("$description\n\nPublished on: $publishedAt",
-                    style: TextStyle(color: Colors.white))
-              ]))));
+                    Text("$title\n",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: "NotoSans",
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16)),
+                    Text("$description\n\nPublished on: $publishedAt",
+                        style: TextStyle(color: Colors.white))
+                  ]))));
     } else {
       return Container();
     }
@@ -182,11 +185,23 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     );
   }
 
-  Future<void> saveMusicRequest(music) async {
+  Future<void> saveMusicRequest() async {
+    Map<String, dynamic> music = new Map<String, dynamic>();
+    Map<String, dynamic> snippet = _videoInfo["items"][0]["snippet"];
+    music["title"] = snippet["title"];
+    music["description"] = snippet["description"];
+    music["publishedAt"] = snippet["publishedAt"].split("T")[0];
+    music["comment"] = _comment;
+    music["videoUrl"] = "https://www.youtube.com/watch?v=${_videoInfo["items"][0]["id"]}";
+    music["channelName"] = snippet["channelTitle"];
+    music["categoryTitles"] = _selectedCategoryTitles;
+
+    print("sending body: ${jsonEncode(music)}");
+
     var response;
     var url = 'http://10.0.2.2:3000/music/create';
     try {
-      response = await http.post(url, body: music);
+      response = await http.post(url, body: json.encode(music), headers: {'Content-type': 'application/json'});
     } catch (e) {
       print(e);
     }
@@ -195,12 +210,29 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     print("${response.body}");
 
     if (response.statusCode == 200) {
-//      Navigator.push(context,
-//          MaterialPageRoute(builder: (context) => ProfilePage(widget.user)));
+      print("posting music succeeded");
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (BuildContext context) => ProfilePage()),
+          );
     } else {
       print("error: ${decodedResponse["error"]}");
+      setState((){
+        _httpError = true;
+      });
       throw Exception('Failed to save music');
     }
+  }
+
+  Iterable<Widget> sortedCategoryIterable() {
+    _selectedCategoryTitles.sort((a, b) {
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
+    return _selectedCategoryTitles.map((e) {
+      return Container(
+          padding: EdgeInsets.symmetric(vertical: 5),
+          child: Text(e, style: TextStyle(color: Colors.white)));
+    });
   }
 
   @override
@@ -208,15 +240,68 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(43, 47, 57, 1.0),
         appBar: AppBar(
+            automaticallyImplyLeading: false,
             elevation: 15.0,
+            titleSpacing: 0,
             backgroundColor: Colors.transparent,
             title: Center(
-                child: Text("Post your favorite music video \nfrom Youtube",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontFamily: 'NotoSans',
-                        color: Colors.white,
-                        fontSize: 16)))),
+                child: _videoInfo.isNotEmpty &&
+                        _selectedCategoryTitles.isNotEmpty
+                    ? Container(
+                  height: MediaQuery.of(context).size.height,
+                        decoration: BoxDecoration(
+                        color: Color.fromRGBO(200, 200, 210, 1)),
+                        padding: EdgeInsets.only(
+                            left: _httpError == true ?
+                            MediaQuery.of(context).size.width * 0.2
+                            : MediaQuery.of(context).size.width * 0.7
+                        ),
+                        child: RaisedButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => saveMusicRequest(),
+                            child: _httpError == false ? Row(children: [
+                              Text("POST ",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                              Icon(Icons.arrow_forward_ios, size: 20)
+                            ]) : Row(children: [
+                              Text("The video already exists ! ",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                              Icon(Icons.block, size: 20, color: Colors.red)
+                            ]),
+                            textColor: Color.fromRGBO(44, 47, 57, 1),
+                            elevation: 0,
+                            color: Colors.transparent))
+                    : _videoInfo.isNotEmpty && _selectedCategoryTitles.isEmpty
+                        ? Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  stops: [0, 1],
+                                    colors: [
+                              Color.fromRGBO(143, 147, 157, 1),
+                                      Colors.transparent
+                            ])),
+                            child: Center(child: Text(
+                                "You should select at least one category",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontFamily: 'NotoSans',
+                                    color: Colors.white,
+                                    fontSize: 16))))
+                        : Container(
+                            child: Text(
+                                "Post your favorite music video \nfrom Youtube",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontFamily: 'NotoSans',
+                                    color: Colors.white,
+                                    fontSize: 16))))),
         body: SingleChildScrollView(
             child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -225,7 +310,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   _textField(
                       text: "Video URL",
-                      padding: EdgeInsets.all(25),
+                      padding: EdgeInsets.fromLTRB(25, 10, 25, 25),
                       onChangeMethod: _getVideoIdAndCallApi),
                   Container(
                       width: MediaQuery.of(context).size.width,
@@ -258,11 +343,38 @@ class UploadMusicPageState extends State<UploadMusicPage> {
                                       color: Color.fromRGBO(
                                           145, 145, 155, 0.4))))),
                   _aboutVideo(),
+                  Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.symmetric(horizontal: 25),
+                      child: RaisedButton(
+                          hoverColor: Color.fromRGBO(175, 175, 185, 1),
+                          onPressed: () async {
+                            List<String> result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        CategoriesPage(_allCategoryTitles,
+                                            _selectedCategoryTitles)));
+                            if (result != null) {
+                              setState(() {
+                                _selectedCategoryTitles = result;
+                              });
+                            }
+                          },
+                          child: Text("Category Selections"),
+                          textColor: Colors.white,
+                          elevation: 5,
+                          color: Color.fromRGBO(175, 175, 185, 0.6))),
+                  Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.symmetric(horizontal: 25),
+                      child: Column(
+                          children: []..addAll(sortedCategoryIterable()))),
                   _textField(
-                      text: "Comment",
+                      text: "Comment (optional)",
                       maxLines: 3,
-                      padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
-                      onChangeMethod: _getDescription),
+                      padding: EdgeInsets.fromLTRB(25, 10, 25, 90),
+                      onChangeMethod: _getComment),
                 ]))));
   }
 }
