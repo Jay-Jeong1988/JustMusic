@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 
+import '../../main.dart';
 import '../../models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -211,9 +212,9 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
     if (response.statusCode == 200) {
       print("posting music succeeded");
-      Navigator.push(
+      Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (BuildContext context) => ProfilePage()),
+          MaterialPageRoute(builder: (BuildContext context) => App()),
           );
     } else {
       print("error: ${decodedResponse["error"]}");

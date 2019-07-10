@@ -154,7 +154,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
         print(error);
       });
       if (user != null) {
-        _storage.write(key: "user", value: User.toJson(user));
+        _storage.write(key: "user", value: response.body);
       }
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => AppScreen(user: user)));

@@ -23,7 +23,7 @@ class ProfilePageState extends State<ProfilePage> {
 
   Future<void> getUserFromStorage() async{
     await _storage.read(key: "user").then((userJson){
-      user = jsonDecode(userJson);
+      user = jsonDecode(userJson)["user"];
       print("user: $user");
     });
   }

@@ -35,6 +35,8 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   Widget currentPage;
   Animation<double> _animation;
   AnimationController _animationController;
+  FlutterSecureStorage _storage = FlutterSecureStorage();
+  User user;
 
   void getSelectedPageFromChild(page) {
     setState((){
@@ -43,6 +45,11 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   }
 
   void initState() {
+    _storage.read(key: "user").then((userJson){
+      user = widget.user != null ? widget.user : (jsonDecode(userJson)["user"].isNotEmpty ? User.fromJson(jsonDecode(userJson)) : null);
+      print("I am ${user.nickname}");
+    });
+
     currentPage = CategoryPage();
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
@@ -84,11 +91,11 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
                 body: Stack(
                     children: [
                       currentPage,
-                      NavBar(user: widget.user, userCountry: userCountry, getSelectedPageFromChild: getSelectedPageFromChild),
+                      NavBar(user: user, userCountry: userCountry, getSelectedPageFromChild: getSelectedPageFromChild),
                     ]));
           }else if (snapshot.connectionState ==
               ConnectionState.waiting) {
-            return Scaffold(body: Stack(children: [Center(child: CircularProgressIndicator()), NavBar(user: widget.user, getSelectedPageFromChild: getSelectedPageFromChild)]));
+            return Scaffold(body: Stack(children: [Center(child: CircularProgressIndicator()), NavBar(user: user, getSelectedPageFromChild: getSelectedPageFromChild)]));
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[
