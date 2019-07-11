@@ -54,7 +54,7 @@ class _NavBarState extends State<NavBar> {
                 size: 30.0)),
         onPressed: () {
 //          _animationController.forward();
-          if (index == 4 && widget.user == null) {
+          if (index == 4 || index == 2 && widget.user == null) {
             setModalBottomSheet(context, widget.userCountry);
           } else {
             setState(() {

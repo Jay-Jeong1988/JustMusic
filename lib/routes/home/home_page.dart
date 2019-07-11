@@ -11,17 +11,22 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _pageController = PageController(
-    initialPage: 0
+      initialPage: 0
   );
   PageView pageView;
   List<String> _sourcePaths = [];
   Future<String> _urlConverted;
+  String _currentUrl = "";
+  String _unavailableVideoUrl = "https://www.youtube.com/watch?v=luPm3Dnouvc";
 
   @override
   void initState() {
-    _urlConverted = _fetchVideoURL("https://www.youtube.com/watch?v=wGyUP4AlZ6I");
-    _urlConverted.then((url){
-      _sourcePaths.add(url);
+    _urlConverted =
+        _fixedFetchVideoURL("https://www.youtube.com/watch?v=DyDfgMOUjCI");
+    _urlConverted.then((url) {
+      print("${url}");
+      _currentUrl = url != null ? url.toString() : _unavailableVideoUrl;
+      _sourcePaths.add(_currentUrl);
       pageView = PageView(
           controller: _pageController,
           scrollDirection: Axis.vertical,
@@ -39,16 +44,35 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<String> _fetchVideoURL(String yt) async {
-    final response = await http.get(yt);
-    Iterable parseAll = _allStringMatches(response.body, RegExp("\"url_encoded_fmt_stream_map\":\"([^\"]*)\""));
-    final Iterable<String> parse = _allStringMatches(parseAll.toList()[0], RegExp("url=(.*)"));
-    final List<String> urls = parse.toList()[0].split('url=');
-    parseAll = _allStringMatches(urls[1], RegExp("([^&,]*)[&,]"));
-    String finalUrl = Uri.decodeFull(parseAll.toList()[0]);
-    if(finalUrl.indexOf('\\u00') > -1)
-      finalUrl = finalUrl.substring(0, finalUrl.indexOf('\\u00'));
-    return finalUrl;
+//  Future<String> _fetchVideoURL(String yt) async {
+//    final response = await http.get(yt);
+//    Iterable parseAll = _allStringMatches(response.body, RegExp("\"url_encoded_fmt_stream_map\":\"([^\"]*)\""));
+//    final Iterable<String> parse = _allStringMatches(parseAll.toList()[0], RegExp("url=(.*)"));
+//    final List<String> urls = parse.toList()[0].split('url=');
+//    parseAll = _allStringMatches(urls[1], RegExp("([^&,]*)[&,]"));
+//    String finalUrl = Uri.decodeFull(parseAll.toList()[0]);
+//    if(finalUrl.indexOf('\\u00') > -1)
+//      finalUrl = finalUrl.substring(0, finalUrl.indexOf('\\u00'));
+//    return finalUrl;
+//}
+  Future<String> _fixedFetchVideoURL(String yt) async {
+    try {
+      final response = await http.get(yt);
+      Iterable parseAll = _allStringMatches(
+          response.body, RegExp("\"url_encoded_fmt_stream_map\":\"([^\"]*)\""));
+      final Iterable<String> parse = _allStringMatches(
+          parseAll.toList()[0], RegExp("url=(.*)"));
+      final List<String> urls = parse.toList()[0].split('url=');
+      String finalUrl = Uri.decodeFull(urls[1].replaceAll(" ", "%20"));
+      if (finalUrl.indexOf('\\u00') > -1)
+        finalUrl = finalUrl.substring(0, finalUrl.indexOf('\\u00'));
+      return finalUrl;
+    }catch(e) {
+      setState((){
+        _currentUrl = _unavailableVideoUrl;
+        print("Range Error: Assigning _currentUrl to _unavailableVideoUrl");
+      });
+    }
   }
 
   Iterable<String> _allStringMatches(String text, RegExp regExp) => regExp.allMatches(text).map((m) => m.group(0));
@@ -59,6 +83,7 @@ class _HomePageState extends State<HomePage> {
         builder: (BuildContext context, snapshot) {
       if (snapshot.connectionState == ConnectionState.done) {
         return _sourcePaths.isNotEmpty ? pageView : Center(child: Text("No video source", style: TextStyle(color: Colors.white)));
+//      return SingleChildScrollView(child: Text(_currentUrl, style: TextStyle(color: Colors.white)));
       }else if (snapshot.connectionState == ConnectionState.waiting) {
         return Center(child: CircularProgressIndicator());
       } else {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 
 import '../../main.dart';
@@ -24,6 +25,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   var _ak;
   Map<String, dynamic> _videoInfo = {};
   bool _httpError = false;
+  User _user;
 
   @override
   void initState() {
@@ -34,6 +36,10 @@ class UploadMusicPageState extends State<UploadMusicPage> {
       });
     }).catchError((error) {
       print(error);
+    });
+    _storage.read(key: "user").then((userJson){
+      _user = User.fromJson(jsonDecode(userJson));
+      print(_user.nickname);
     });
     Category.getCategoriesRequest().then((categories) {
       categories.sort((a, b) {
@@ -196,6 +202,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     music["videoUrl"] = "https://www.youtube.com/watch?v=${_videoInfo["items"][0]["id"]}";
     music["channelName"] = snippet["channelTitle"];
     music["categoryTitles"] = _selectedCategoryTitles;
+    music["userId"] = _user.id;
 
     print("sending body: ${jsonEncode(music)}");
 
