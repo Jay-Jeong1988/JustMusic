@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../routes/auth/phone_auth_page.dart';
 
-void setModalBottomSheet(context, country) {
+void setModalBottomSheet(context) {
   Widget _login = Container(
       padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
       decoration: BoxDecoration(
@@ -103,7 +103,7 @@ void setModalBottomSheet(context, country) {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => PhoneAuth(country: country)),
+            MaterialPageRoute(builder: (context) => PhoneAuth()),
           );
         },
       ));

@@ -79,11 +79,11 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     }
   }
 
-  void _getVideoIdAndCallApi(String url) {
-    var regExp = RegExp("v=", caseSensitive: true);
-    var videoId = "";
-    if (regExp.hasMatch(url) && _ak != null) {
-      videoId = url.split("v=")[1];
+  void _getVideoIdAndCallApi(String receivedUri) {
+    var uri = Uri.parse(receivedUri);
+
+    void _setVideoInfo(videoId){
+      print(videoId);
       getYoutubeObject(_getYoutubeV3ApiUrl(_ak, videoId)).then((info) {
         setState(() {
           _httpError = false;
@@ -94,12 +94,22 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           print(_videoInfo);
         });
       });
-    } else {
-      setState(() {
-        _videoInfo = new Map<String, dynamic>();
-        print(_videoInfo);
-      });
-      print("Invalid Youtube URL or Api key is missing");
+    }
+
+    if ( _ak != null) {
+      if (uri.queryParameters.containsKey("v")) {
+        _setVideoInfo(uri.queryParameters["v"]);
+      } else if (uri.host == "youtu.be") {
+        _setVideoInfo(uri.path.replaceFirst("/", ""));
+      } else {
+        setState(() {
+          _videoInfo = new Map<String, dynamic>();
+          print(_videoInfo);
+        });
+        print("Invalid Youtube URL");
+      }
+    }else {
+      print("Api key is missing");
     }
   }
 

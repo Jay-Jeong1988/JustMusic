@@ -1,3 +1,4 @@
+import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:flutter/material.dart';
 import '../global_components/modal_bottom_sheet.dart';
 import '../routes/home/home_page.dart';
@@ -7,32 +8,28 @@ import '../routes/create/upload_music_page.dart';
 
 class NavBar extends StatefulWidget {
   var user;
-  var userCountry;
-  Function setSelectedPageToParent;
+  var currentPage;
+  Function getSelectedPageFromChild;
 
-  NavBar({user, userCountry, getSelectedPageFromChild}) {
-    this.user = user;
-    this.userCountry = userCountry;
-    this.setSelectedPageToParent = getSelectedPageFromChild;
-  }
+  NavBar({this.user, this.getSelectedPageFromChild, this.currentPage});
+
   @override
   _NavBarState createState() => _NavBarState();
 }
 
 class _NavBarState extends State<NavBar> {
   int _clicked = 1;
-  List<Widget> navPages;
+  List<Widget> navPages = [
+    HomePage(
+      key: PageStorageKey('Page1'),
+    ),
+    CategoryPage(),
+    UploadMusicPage(),
+    Container(),
+    ProfilePage(),
+  ];
 
   void initState() {
-    this.navPages = [
-      HomePage(
-        key: PageStorageKey('Page1'),
-      ),
-      CategoryPage(),
-      UploadMusicPage(),
-      Container(),
-      ProfilePage(),
-    ];
   }
 
   Widget navButton(IconData icon, int index) {
@@ -53,14 +50,15 @@ class _NavBarState extends State<NavBar> {
                     : Color.fromRGBO(190, 190, 190, 1),
                 size: 30.0)),
         onPressed: () {
+          print(widget.user);
 //          _animationController.forward();
           if (index == 4 || index == 2 && widget.user == null) {
-            setModalBottomSheet(context, widget.userCountry);
+            setModalBottomSheet(context);
           } else {
             setState(() {
               _clicked = index;
             });
-            widget.setSelectedPageToParent(navPages[index]);
+            widget.getSelectedPageFromChild(navPages[index]);
           }
         });
   }

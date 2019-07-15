@@ -23,7 +23,8 @@ class App extends StatelessWidget {
 
 class AppScreen extends StatefulWidget {
   final User user;
-  AppScreen({Key key, @required this.user}) : super(key: key);
+  Widget navigatedPage;
+  AppScreen({Key key, @required this.user, this.navigatedPage}) : super(key: key);
 
   @override
   _AppScreenState createState() => _AppScreenState();
@@ -45,17 +46,19 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   }
 
   void initState() {
+    if(widget.user != null)print("outside: ${widget.user.nickname}");
     _storage.read(key: "user").then((userJson){
       user = widget.user != null ? widget.user : (jsonDecode(userJson)["user"].isNotEmpty ? User.fromJson(jsonDecode(userJson)) : null);
       print("I am ${user.nickname}");
     });
 
-    currentPage = CategoryPage();
+    currentPage = widget.navigatedPage != null ? widget.navigatedPage : CategoryPage();
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
-      userCountry = country;
-      print("userCountry: ${userCountry}");
-    });
+      _storage.write(key: "country", value: Country.toJson(country));
+        userCountry = country;
+        print("userCountry: ${userCountry}");
+    });;
 
 
     _animationController = AnimationController(
@@ -91,7 +94,9 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
                 body: Stack(
                     children: [
                       currentPage,
-                      NavBar(user: user, userCountry: userCountry, getSelectedPageFromChild: getSelectedPageFromChild),
+                      widget.navigatedPage != null ?
+                      NavBar(user: user, getSelectedPageFromChild: getSelectedPageFromChild, currentPage: widget.navigatedPage):
+                      NavBar(user: user, getSelectedPageFromChild: getSelectedPageFromChild),
                     ]));
           }else if (snapshot.connectionState ==
               ConnectionState.waiting) {

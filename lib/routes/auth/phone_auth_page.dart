@@ -10,8 +10,6 @@ import './country_code_widget.dart';
 import '../../models/country.dart';
 
 class PhoneAuth extends StatefulWidget {
-  PhoneAuth({@required this.country});
-  Country country;
   @override
   _PhoneAuthState createState() => _PhoneAuthState();
 }
@@ -23,10 +21,17 @@ class _PhoneAuthState extends State<PhoneAuth> {
   Country _selectedCountry;
   TextEditingController _controller = new TextEditingController();
   final _storage = FlutterSecureStorage();
+  Future<String> _getCountryFromStorage;
 
   @override
   void initState() {
-    this._selectedCountry = widget.country;
+    _getCountryFromStorage = _storage.read(key: "country");
+    _getCountryFromStorage.then((country){
+      _selectedCountry = Country.fromJson(jsonDecode(country));
+      print(_selectedCountry.name);
+      print(_selectedCountry.isoCode);
+      print(_selectedCountry.dialingCode);
+    });
     super.initState();
     _signOut();
     FirebaseAuth.instance.onAuthStateChanged.listen((FirebaseUser user) {
@@ -54,9 +59,16 @@ class _PhoneAuthState extends State<PhoneAuth> {
     };
 
     final PhoneVerificationCompleted verificationSuccess =
-        (AuthCredential user) {
-      print('auto verified and signed in user: $user');
-      print('phone number: $this.phoneNo');
+        (AuthCredential credential) async {
+      print('auto verified and signed in user: $credential');
+      print('phone number: $phoneNo');
+      final FirebaseUser user =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
+//    final token = await user.getIdToken();
+          assert(user.uid == currentUser.uid);
+          print('signed into firebase: $user');
+      saveUserRequest(user);
     };
 
     final PhoneVerificationFailed verificationFailed =
@@ -89,6 +101,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
           return new AlertDialog(
             title: Text('Enter sms Code'),
             content: TextField(
+              keyboardType: TextInputType.number,
               onChanged: (value) {
                 this.smsCode = value;
               },
@@ -98,15 +111,6 @@ class _PhoneAuthState extends State<PhoneAuth> {
               new FlatButton(
                 child: Text('Done'),
                 onPressed: () {
-//                  FirebaseAuth.instance.currentUser().then((user) {
-//                    if (user != null) {
-//                      print("current user already exists: $user");
-//                      Navigator.of(context).pop();
-//                    } else {
-//                      signInWithPhoneNumber(this.smsCode);
-//                      Navigator.of(context).pop();
-//                    }
-//                  });
                   signInWithPhoneNumber(this.smsCode);
                 },
               )
@@ -128,7 +132,6 @@ class _PhoneAuthState extends State<PhoneAuth> {
     print('signed into firebase: $user');
 
     saveUserRequest(user);
-    Navigator.of(context).pop();
 //    print('token: $token');
   }
 
@@ -156,8 +159,8 @@ class _PhoneAuthState extends State<PhoneAuth> {
       if (user != null) {
         _storage.write(key: "user", value: response.body);
       }
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => AppScreen(user: user)));
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => AppScreen(user: user)),(_)=>false);
 
     } else {
       FirebaseAuth.instance.signOut();
@@ -177,82 +180,113 @@ class _PhoneAuthState extends State<PhoneAuth> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-        body: new Center(
-            child: Container(
-                decoration: BoxDecoration(color: Colors.white),
-                padding: EdgeInsets.all(25.0),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                          decoration: BoxDecoration(
-                              border: Border(
-                                  bottom: BorderSide(
-                                      color: Color.fromRGBO(140, 140, 140, 1.0),
-                                      style: BorderStyle.solid,
-                                      width: 1.0))),
-                          child: Row(mainAxisSize: MainAxisSize.max, children: [
-                            Flexible(
-                                child: RawMaterialButton(
-                                    child: Container(
-                                        padding: EdgeInsets.only(left: 0.0),
-                                        decoration: BoxDecoration(
-                                            border: Border(
-                                                right: BorderSide(
+    return FutureBuilder(
+        future: _getCountryFromStorage,
+        builder: (BuildContext context, snapshot)
+    {
+      if (snapshot.connectionState == ConnectionState.done) {
+        return new Scaffold(
+            body: new Center(
+                child: Container(
+                    decoration: BoxDecoration(color: Colors.white),
+                    padding: EdgeInsets.all(25.0),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                              decoration: BoxDecoration(
+                                  border: Border(
+                                      bottom: BorderSide(
+                                          color: Color.fromRGBO(
+                                              140, 140, 140, 1.0),
+                                          style: BorderStyle.solid,
+                                          width: 1.0))),
+                              child: Row(
+                                  mainAxisSize: MainAxisSize.max, children: [
+                                Flexible(
+                                    child: RawMaterialButton(
+                                        child: Container(
+                                            padding: EdgeInsets.only(left: 0.0),
+                                            decoration: BoxDecoration(
+                                                border: Border(
+                                                    right: BorderSide(
+                                                        color: Color.fromRGBO(
+                                                            140, 140, 140, 1.0),
+                                                        style: BorderStyle
+                                                            .solid,
+                                                        width: 1.0))),
+                                            child: Text(
+                                                _selectedCountry != null
+                                                    ?
+                                                '${_selectedCountry
+                                                    .isoCode} +${_selectedCountry
+                                                    .dialingCode} \u25BE  '
+                                                    : "",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight
+                                                        .normal,
                                                     color: Color.fromRGBO(
-                                                        140, 140, 140, 1.0),
-                                                    style: BorderStyle.solid,
-                                                    width: 1.0))),
-                                        child: Text(
-                                            '${_selectedCountry.isoCode} +${_selectedCountry.dialingCode} \u25BE  ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                                color: Color.fromRGBO(
-                                                    80, 80, 80, 1.0)))),
-                                    onPressed: () async {
-                                      Country result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  CountryCodeWidget(
-                                                      selectedCountry:
+                                                        80, 80, 80, 1.0)))),
+                                        onPressed: () async {
+                                          Country result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      CountryCodeWidget(
+                                                          selectedCountry:
                                                           _selectedCountry)));
-                                      if (result != null) {
-                                        setState(() {
-                                          _selectedCountry = result;
-                                          _controller.clear();
-                                        });
-                                      }
-                                    })),
-                            Expanded(
-                                child: TextField(
-                                    controller: _controller,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: 'Phone number'),
-                                    onChanged: (value) {
-                                      this.phoneNo =
-                                          "+${_selectedCountry.dialingCode}$value";
-                                    }))
-                          ])),
-                      Container(
-                          padding: EdgeInsets.only(
-                              top: 15.0, right: 8.0, bottom: 15.0),
-                          decoration: BoxDecoration(),
-                          child: Text(
-                              "By signing up, you confirm that you agree to our Terms "
-                              "of Use and have read and understood our Privacy Policy."
-                              " You will receive an SMS to confirm your phone number."
-                              " SMS fee may apply.",
-                              style: TextStyle(fontSize: 12.0))),
-                      RaisedButton(
-                          onPressed: verifyPhone,
-                          child: Text("Verify"),
-                          textColor: Colors.white,
-                          elevation: 7.0,
-                          color: Colors.blue)
-                    ]))));
+                                          if (result != null) {
+                                            setState(() {
+                                              _selectedCountry = result;
+                                              _controller.clear();
+                                            });
+                                          }
+                                        })),
+                                Expanded(
+                                    child: TextField(
+                                        controller: _controller,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText: 'Phone number'),
+                                        onChanged: (value) {
+                                          this.phoneNo =
+                                          "+${_selectedCountry
+                                              .dialingCode}$value";
+                                        }))
+                              ])),
+                          Container(
+                              padding: EdgeInsets.only(
+                                  top: 15.0, right: 8.0, bottom: 15.0),
+                              decoration: BoxDecoration(),
+                              child: Text(
+                                  "By signing up, you confirm that you agree to our Terms "
+                                      "of Use and have read and understood our Privacy Policy."
+                                      " You will receive an SMS to confirm your phone number."
+                                      " SMS fee may apply.",
+                                  style: TextStyle(fontSize: 12.0))),
+                          RaisedButton(
+                              onPressed: verifyPhone,
+                              child: Text("Verify"),
+                              textColor: Colors.white,
+                              elevation: 7.0,
+                              color: Colors.blue)
+                        ]))));
+      } else if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else {
+        return Center(
+            child: Column(children: <Widget>[
+              Text('Error: ${snapshot.error}',
+                  style: TextStyle(fontSize: 14.0, color: Colors.white)),
+              RaisedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("Exit"),
+                  textColor: Colors.white,
+                  elevation: 7.0,
+                  color: Colors.blue)
+            ]));
+      }
+    });
   }
 }

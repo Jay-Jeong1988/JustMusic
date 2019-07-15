@@ -1,4 +1,6 @@
+import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:flutter/material.dart';
+import '../../main.dart';
 import '../../models/category.dart';
 import '../../global_components/empty_widgets.dart';
 import 'dart:math';
@@ -30,7 +32,6 @@ class CategoryPageState extends State<CategoryPage> {
         _allCategories.addAll(categories.map((category) {
           return Category.fromJson(category);
         }));
-        print(_allCategories);
       });
     });
   }
@@ -44,8 +45,7 @@ class CategoryPageState extends State<CategoryPage> {
             return Scaffold(
               body: _allCategories.isEmpty
                   ? EmptySearchWidget(textInput: "No existing category.")
-                  :
-                      Stack(children: [
+                  : Stack(children: [
                       Container(
                           child: CustomScrollView(slivers: [
                         SliverPadding(
@@ -91,7 +91,11 @@ class CategoryPageState extends State<CategoryPage> {
                                               child: Text(
                                                   category.title.toUpperCase(),
                                                   style: TextStyle(
-                                                    shadows: [Shadow(color: Colors.black, blurRadius: 3.0)],
+                                                      shadows: [
+                                                        Shadow(
+                                                            color: Colors.black,
+                                                            blurRadius: 3.0)
+                                                      ],
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 16.0,
@@ -99,11 +103,50 @@ class CategoryPageState extends State<CategoryPage> {
                                                               .contains(
                                                                   category)
                                                           ? Colors.white
-                                                          : Color.fromRGBO(255, 255, 255, 0.6))))
+                                                          : Color.fromRGBO(255,
+                                                              255, 255, 0.6))))
                                         ]));
                                   })))))
                       ])),
-                      EmptyShadowAppBar(text: "Choose every genre you like")
+                      Container(
+                          padding: EdgeInsets.fromLTRB(20, 23, 20, 0),
+                          height: MediaQuery.of(context).size.height * 0.1,
+                          decoration: BoxDecoration(boxShadow: [
+                            BoxShadow(
+                              color: Color.fromRGBO(0, 0, 0, 0.4),
+                              blurRadius: 10.0,
+                            )
+                          ]),
+                          child: Center(
+                              child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                Text("Choose genres you like",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontFamily: 'NotoSans',
+                                        color: Colors.white,
+                                        fontSize: 16)),
+                                _selectedCategories.isNotEmpty
+                                    ? RaisedButton(
+                                        onPressed: () {
+                                          Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      AppScreen(
+                                                          navigatedPage: HomePage(
+                                                              selectedCategories:
+                                                                  _selectedCategories))));
+                                        },
+                                        child: Text("PLAY"),
+                                        textColor: Colors.white,
+                                        elevation: 0,
+                                        color: Colors.blue)
+                                    : Container()
+                              ])))
                     ]),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {

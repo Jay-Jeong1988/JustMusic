@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Country {
   final String name;
   final String dialingCode;
@@ -8,6 +10,23 @@ class Country {
     this.dialingCode,
     this.isoCode,
   });
+
+  factory Country.fromJson(Map<String, dynamic> json) {
+    return Country(
+         name: json["name"],
+      dialingCode: json["dialingCode"],
+      isoCode: json["isoCode"],
+        );
+  }
+
+  static String toJson(Country country){
+    Map<String, dynamic> self = new Map<String, dynamic>();
+    self["name"] = country.name;
+    self["dialingCode"] = country.dialingCode;
+    self["isoCode"] = country.isoCode;
+
+    return jsonEncode(self);
+  }
 
   static const Country AD = Country(
     dialingCode: "376",
