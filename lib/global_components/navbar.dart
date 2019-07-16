@@ -25,11 +25,12 @@ class _NavBarState extends State<NavBar> {
     ),
     CategoryPage(),
     UploadMusicPage(),
-    Container(),
+    Center(child: Text("Still in construction :)", style: TextStyle(color: Colors.white, fontSize: 20, fontFamily: "Noto Sans"))),
     ProfilePage(),
   ];
 
   void initState() {
+    print("user: ${widget.user}");
   }
 
   Widget navButton(IconData icon, int index) {
@@ -52,7 +53,7 @@ class _NavBarState extends State<NavBar> {
         onPressed: () {
           print(widget.user);
 //          _animationController.forward();
-          if (index == 4 || index == 2 && widget.user == null) {
+          if ((index == 4 || index == 2) && widget.user == null) {
             setModalBottomSheet(context);
           } else {
             setState(() {

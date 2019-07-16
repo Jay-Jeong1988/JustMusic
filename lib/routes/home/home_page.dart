@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:JustMusic/models/category.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
@@ -15,13 +16,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _pageController = PageController(initialPage: 0);
   PageView pageView;
-  List<String> _sourcePaths = [];
-  String _currentUrl = "";
-  String _unavailableVideoUrl = "https://www.youtube.com/watch?v=luPm3Dnouvc";
+  List<dynamic> _sources = [];
   Future<List<dynamic>> _urlConverted;
-  List<dynamic> _musics = [];
   int _previousPageIndex = 0;
   List<String> _categoryTitles = [];
+
+  final Shader linearGradient = LinearGradient(
+    colors: <Color>[Colors.white54, Colors.white],
+  ).createShader(Rect.fromLTWH(80.0, 0.0, 200, 70.0));
 
   @override
   void initState() {
@@ -30,12 +32,10 @@ class _HomePageState extends State<HomePage> {
         return category.title;
       }));
     }
+
       _urlConverted = getMusicsRequest(_categoryTitles);
       _urlConverted.then((musics){
-        _musics = musics;
-        _musics.forEach((music){
-          _sourcePaths.add(music["videoUrl"]);
-        });
+        _sources = shuffle(musics);
         pageView = PageView(
             controller: _pageController,
             scrollDirection: Axis.vertical,
@@ -48,11 +48,28 @@ class _HomePageState extends State<HomePage> {
               else print('page switched to $index (up)');
               _previousPageIndex = index;
             },
-            children: []..addAll(_sourcePaths.map((_sourcePath){
-              return YoutubePlayerScreen(_sourcePath, _pageController);
+            children: []..addAll(_sources.map((_source){
+              return YoutubePlayerScreen(_source, _pageController);
             }))
             );
       });
+  }
+
+  List shuffle(List items) {
+    var random = new Random();
+
+    // Go through all elements.
+    for (var i = items.length - 1; i > 0; i--) {
+
+      // Pick a pseudorandom number according to the list length
+      var n = random.nextInt(i + 1);
+
+      var temp = items[i];
+      items[i] = items[n];
+      items[n] = temp;
+    }
+
+    return items;
   }
 
   Future<List<dynamic>> getMusicsRequest(categories) async {
@@ -107,11 +124,20 @@ class _HomePageState extends State<HomePage> {
         future: _urlConverted,
         builder: (BuildContext context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return _sourcePaths.isNotEmpty
+            return _sources.isNotEmpty
                 ? pageView
-                : Center(
-                    child: Text("No video source",
-                        style: TextStyle(color: Colors.white)));
+                : Stack(children: [
+              Positioned(
+                  top: MediaQuery.of(context).size.height * .05,
+//            left: MediaQuery.of(context).size.width * .82,
+                  child: Container(width: MediaQuery.of(context).size.width ,
+                      child: Center(
+                          child: Text("JUST MUSIC",
+                              style: TextStyle(foreground: Paint()..shader = linearGradient, fontFamily: "NotoSans", fontSize: 20)))
+                  ))
+                  ,Center(
+                    child: Text("Unknown Error:\n Please choose genre(s) and try again !",
+                        style: TextStyle(color: Colors.white)))]);
 //      return SingleChildScrollView(child: Text(_currentUrl, style: TextStyle(color: Colors.white)));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());

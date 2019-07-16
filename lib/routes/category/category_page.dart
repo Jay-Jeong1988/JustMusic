@@ -127,7 +127,7 @@ class CategoryPageState extends State<CategoryPage> {
                                     style: TextStyle(
                                         fontFamily: 'NotoSans',
                                         color: Colors.white,
-                                        fontSize: 16)),
+                                        fontSize: 18)),
                                 _selectedCategories.isNotEmpty
                                     ? RaisedButton(
                                         onPressed: () {

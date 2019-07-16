@@ -36,9 +36,8 @@ class ProfilePageState extends State<ProfilePage> {
             return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center
                 ,children: [
                   Text(
-                      "Profile Page ${user != null ? user["nickname"] : 's'}", style: TextStyle(color: Colors.white)
-                  ),
-                  GeoListenPage()
+                      "Profile page coming soon:\n ${user != null ? user["nickname"] : 's'}", style: TextStyle(color: Colors.white)
+                  )
                 ]));
           }else if(snapshot.connectionState == ConnectionState.waiting){
             return Center(child: CircularProgressIndicator());
