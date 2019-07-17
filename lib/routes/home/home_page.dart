@@ -80,8 +80,8 @@ class _HomePageState extends State<HomePage> {
       queryParameters["category${index++}"] = category;
     });
     var uri = queryParameters.isNotEmpty ?
-    Uri.http("10.0.2.2:3000", "/music/all", queryParameters) :
-        Uri.http("10.0.2.2:3000", "/music/all");
+    Uri.http("34.222.61.255:3000", "/music/all", queryParameters) :
+        Uri.http("34.222.61.255:3000", "/music/all");
     try {
       response = await http.get(uri);
     } catch (e) {

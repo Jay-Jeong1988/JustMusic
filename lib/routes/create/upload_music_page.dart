@@ -217,7 +217,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     print("sending body: ${jsonEncode(music)}");
 
     var response;
-    var url = 'http://10.0.2.2:3000/music/create';
+    var url = 'http://34.222.61.255:3000/music/create';
     try {
       response = await http.post(url, body: json.encode(music), headers: {'Content-type': 'application/json'});
     } catch (e) {

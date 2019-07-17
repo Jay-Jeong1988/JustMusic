@@ -22,7 +22,7 @@ class Category {
 
   static Future<List<dynamic>> getCategoriesRequest() async {
     var response;
-    var url = 'http://10.0.2.2:3000/music/categories';
+    var url = 'http://34.222.61.255:3000/music/categories';
     try {
       response = await http.get(url);
     } catch (e) {

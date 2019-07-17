@@ -137,7 +137,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
 
   Future<void> saveUserRequest(FirebaseUser user) async {
     var response;
-    var url = 'http://10.0.2.2:3000/users/signup';
+    var url = 'http://34.222.61.255:3000/users/signup';
     try {
       response = await http.post(url, body: {'phoneNumber': user.phoneNumber});
     } catch (e) {
