@@ -107,6 +107,15 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                             fontFamily: "NotoSans",
                             fontSize: 20))))),
         Positioned(
+          top: MediaQuery.of(context).size.height * .3,
+          child: Container(child: FlatButton(
+            onPressed: (){},
+            textColor: Colors.white70,
+              child: Text("JustMusic publisher: "
+                  "${_source["uploader"] != null ? _source["uploader"]["nickname"] : "unknown"}",
+              style: TextStyle(fontSize: 12))))
+        ),
+        Positioned(
             top: MediaQuery.of(context).size.height * .25,
             left: MediaQuery.of(context).size.width * .82,
             child: Container(child: _repeatButton())),

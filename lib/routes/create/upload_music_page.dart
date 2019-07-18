@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 
@@ -41,7 +42,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
       _user = User.fromJson(jsonDecode(userJson));
       print(_user.nickname);
     });
-    Category.getCategoriesRequest().then((categories) {
+    MusicApi.getCategories().then((categories) {
       categories.sort((a, b) {
         return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
       });
@@ -216,30 +217,22 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
     print("sending body: ${jsonEncode(music)}");
 
-    var response;
-    var url = 'http://34.222.61.255:3000/music/create';
-    try {
-      response = await http.post(url, body: json.encode(music), headers: {'Content-type': 'application/json'});
-    } catch (e) {
-      print(e);
-    }
-    Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
-
-    if (response.statusCode == 200) {
-      print("posting music succeeded");
-      Navigator.pushReplacement(
+    MusicApi.postMusic(jsonEncode(music)).then((response){
+      Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        print("posting music succeeded");
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (BuildContext context) => App()),
-          );
-    } else {
-      print("error: ${decodedResponse["error"]}");
-      setState((){
-        _httpError = true;
-      });
-      throw Exception('Failed to save music');
-    }
+        );
+      } else {
+        print("error: ${decodedResponse["error"]}");
+        setState((){
+          _httpError = true;
+        });
+        throw Exception('Failed to save music');
+      }
+    });
   }
 
   Iterable<Widget> sortedCategoryIterable() {

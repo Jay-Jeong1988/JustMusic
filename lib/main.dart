@@ -7,6 +7,8 @@ import './models/country.dart';
 import './utils/locationUtil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import './global_components/AK.dart';
+import 'package:http/http.dart' as http;
+import 'global_components/api.dart';
 
 void main() => runApp(App());
 
@@ -46,11 +48,28 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   }
 
   void initState() {
-    if(widget.user != null)print("outside: ${widget.user.nickname}");
-    _storage.read(key: "user").then((userJson){
-      user = widget.user != null ? widget.user : (jsonDecode(userJson)["user"].isNotEmpty ? User.fromJson(jsonDecode(userJson)) : null);
-      print("I am ${user.nickname}");
-    });
+    Api(); //determine which host the app should use
+    if (widget.user == null) {
+      _storage.read(key: "user").then((userJson) {
+        if (userJson != null && jsonDecode(userJson)["user"].isNotEmpty) {
+          UserApi.authenticateUser(jsonDecode(userJson)["user"]["contactInfo"]["phoneNumber"])
+          .then((isValidUser){
+            if (isValidUser == true){
+              this.user = User.fromJson(jsonDecode(userJson));
+              print("I am ${user.nickname}");
+            }else {
+              _storage.delete(key: "user").catchError((error){
+                print(error);
+              });
+            }
+          });
+        }else {
+          user = null;
+        }
+      });
+    }else {
+      user = widget.user;
+    }
 
     currentPage = widget.navigatedPage != null ? widget.navigatedPage : CategoryPage();
     countryFuture = getCountryInstance();
@@ -58,8 +77,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
       _storage.write(key: "country", value: Country.toJson(country));
         userCountry = country;
         print("userCountry: ${userCountry}");
-    });;
-
+    });
 
     _animationController = AnimationController(
         vsync: this,

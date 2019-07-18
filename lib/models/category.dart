@@ -20,22 +20,4 @@ class Category {
     );
   }
 
-  static Future<List<dynamic>> getCategoriesRequest() async {
-    var response;
-    var url = 'http://34.222.61.255:3000/music/categories';
-    try {
-      response = await http.get(url);
-    } catch (e) {
-      print(e);
-    }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-
-    if (response.statusCode == 200) {
-      print(decodedResponse);
-      return decodedResponse;
-    } else {
-      throw Exception('Failed to load categories');
-    }
-  }
 }

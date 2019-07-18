@@ -1,3 +1,4 @@
+import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
@@ -23,7 +24,7 @@ class CategoryPageState extends State<CategoryPage> {
 
   @override
   void initState() {
-    futureCategories = Category.getCategoriesRequest();
+    futureCategories = MusicApi.getCategories();
     futureCategories.then((List<dynamic> categories) {
       categories.sort((a, b) {
         return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());

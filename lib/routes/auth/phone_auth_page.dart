@@ -1,4 +1,5 @@
 import 'package:JustMusic/global_components/AK.dart';
+import 'package:JustMusic/global_components/api.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -136,38 +137,31 @@ class _PhoneAuthState extends State<PhoneAuth> {
   }
 
   Future<void> saveUserRequest(FirebaseUser user) async {
-    var response;
-    var url = 'http://34.222.61.255:3000/users/signup';
-    try {
-      response = await http.post(url, body: {'phoneNumber': user.phoneNumber});
-    } catch (e) {
-      print(e);
-    }
-    Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
 
-    if (response.statusCode == 200) {
-      print(decodedResponse['user']);
-      User user = User.fromJson(decodedResponse);
+    UserApi.signUpRequest(user).then((response){
+      Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        print(decodedResponse['user']);
+        User user = User.fromJson(decodedResponse);
 
-      _storage.deleteAll().then((result){
-        _storeKey();
-      }).catchError((error){
-        print(error);
-      });
-      if (user != null) {
-        _storage.write(key: "user", value: response.body);
+        _storage.deleteAll().then((result){
+          _storeKey();
+        }).catchError((error){
+          print(error);
+        });
+        if (user != null) {
+          _storage.write(key: "user", value: response.body);
+        }
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) => AppScreen(user: user)),(_)=>false);
+
+      } else {
+        FirebaseAuth.instance.signOut();
+        print("validation error: ${decodedResponse["error"]}");
+        print("Firebase user logged out");
+        throw Exception('Failed to save or load a user');
       }
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) => AppScreen(user: user)),(_)=>false);
-
-    } else {
-      FirebaseAuth.instance.signOut();
-      print("validation error: ${decodedResponse["error"]}");
-      print("Firebase user logged out");
-      throw Exception('Failed to save or load a user');
-    }
+    });
   }
 
   Future<dynamic> _storeKey() async{

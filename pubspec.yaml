@@ -37,6 +37,8 @@ dependencies:
 
   youtube_player_flutter: ^3.0.0+1
 
+  device_info:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

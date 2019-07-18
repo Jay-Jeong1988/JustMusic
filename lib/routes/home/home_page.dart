@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/models/category.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _HomePageState extends State<HomePage> {
       }));
     }
 
-      _urlConverted = getMusicsRequest(_categoryTitles);
+      _urlConverted = MusicApi.getMusics(_categoryTitles);
       _urlConverted.then((musics){
         _sources = shuffle(musics);
         pageView = PageView(
@@ -72,31 +73,6 @@ class _HomePageState extends State<HomePage> {
     return items;
   }
 
-  Future<List<dynamic>> getMusicsRequest(categories) async {
-    var response;
-    Map<String, String> queryParameters = {};
-    int index = 0;
-    categories.forEach((category){
-      queryParameters["category${index++}"] = category;
-    });
-    var uri = queryParameters.isNotEmpty ?
-    Uri.http("34.222.61.255:3000", "/music/all", queryParameters) :
-        Uri.http("34.222.61.255:3000", "/music/all");
-    try {
-      response = await http.get(uri);
-    } catch (e) {
-      print(e);
-    }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-
-    if (response.statusCode == 200) {
-      print("Decoded response: $decodedResponse");
-      return decodedResponse;
-    } else {
-      throw Exception('Failed to load music data');
-    }
-  }
 //  --------------------------------------------Unused Function----------------
 //  Future<String> _fixedFetchVideoURL(String yt) async {
 //    try {
