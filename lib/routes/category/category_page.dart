@@ -1,6 +1,7 @@
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
 import '../../main.dart';
 import '../../models/category.dart';
 import '../../global_components/empty_widgets.dart';
@@ -11,8 +12,8 @@ class CategoryPage extends StatefulWidget {
 }
 
 class CategoryPageState extends State<CategoryPage> {
-  Future<List<dynamic>> futureCategories;
-  List<Category> _allCategories = [];
+  var futureCategories;
+  List<dynamic> _allCategories = [];
   List<Category> _selectedCategories = [];
   List<Color> gridBgColors = [
     Color.fromRGBO(93, 92, 97, 1),
@@ -21,20 +22,30 @@ class CategoryPageState extends State<CategoryPage> {
     Color.fromRGBO(115, 149, 173, 1),
     Color.fromRGBO(176, 162, 149, 1),
   ];
+  LocalStorage _localStorage = new LocalStorage("categoriesContainer");
 
   @override
   void initState() {
-    futureCategories = MusicApi.getCategories();
-    futureCategories.then((List<dynamic> categories) {
-      categories.sort((a, b) {
-        return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
-      });
-      setState(() {
+    if (_localStorage.getItem("categories") == null){
+      futureCategories = MusicApi.getCategories();
+      futureCategories.then((List<dynamic> categories) {
+        categories.sort((a, b) {
+          return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+        });
         _allCategories.addAll(categories.map((category) {
           return Category.fromJson(category);
         }));
+        _localStorage.setItem("categories", categories);
       });
-    });
+      print("cateogries loaded from server");
+    }else {
+      futureCategories = _localStorage.ready;
+      _allCategories.addAll(_localStorage.getItem("categories").map((category){
+        return Category.fromJson(category);
+      }));
+      print("categories loaded from localstorage");
+    }
+
   }
 
   @override

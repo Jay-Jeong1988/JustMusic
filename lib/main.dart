@@ -6,8 +6,6 @@ import './global_components/navbar.dart';
 import './models/country.dart';
 import './utils/locationUtil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import './global_components/AK.dart';
-import 'package:http/http.dart' as http;
 import 'global_components/api.dart';
 
 void main() => runApp(App());
@@ -48,7 +46,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
   }
 
   void initState() {
-    Api(); //determine which host the app should use
+    Api(); //create an Api instance to determine which host the app should use
     if (widget.user == null) {
       _storage.read(key: "user").then((userJson) {
         if (userJson != null && jsonDecode(userJson)["user"].isNotEmpty) {
@@ -56,7 +54,7 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
           .then((isValidUser){
             if (isValidUser == true){
               this.user = User.fromJson(jsonDecode(userJson));
-              print("I am ${user.nickname}");
+              print("I am ${user.nickname} (from storage)");
             }else {
               _storage.delete(key: "user").catchError((error){
                 print(error);
@@ -76,7 +74,6 @@ class _AppScreenState extends State<AppScreen> with SingleTickerProviderStateMix
     countryFuture.then((country) {
       _storage.write(key: "country", value: Country.toJson(country));
         userCountry = country;
-        print("userCountry: ${userCountry}");
     });
 
     _animationController = AnimationController(

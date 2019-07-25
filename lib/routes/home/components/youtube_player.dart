@@ -1,28 +1,37 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class YoutubePlayerScreen extends StatefulWidget {
-  PageController _pageController;
-  dynamic _source;
-  YoutubePlayerScreen(this._source, this._pageController);
+  YoutubePlayerScreen({
+    Key key,
+    @required this.source,
+    @required this.pageController
+  });
+
+  final PageController pageController;
+  final dynamic source;
 
   State<YoutubePlayerScreen> createState() => _YoutubePlayerScreenState();
 }
 
 class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
   var _controller = YoutubePlayerController();
-  dynamic _source;
+  dynamic source;
   bool _isRepeatOn = false;
   bool _liked = false;
   bool _reported = false;
   bool _blocked = false;
+  List<String> alternative = [];
 
   final Shader linearGradient = LinearGradient(
     colors: <Color>[Colors.white54, Colors.white],
   ).createShader(Rect.fromLTWH(80.0, 0.0, 200, 70.0));
 
   void initState() {
-    _source = widget._source;
+    source = widget.source;
+    alternative.add(widget.source["videoUrl"]);
   }
 
   void autoSwipe(PageController pageController) {
@@ -90,9 +99,19 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
           statusVar == false ? icons["${name}Disabled"] : icons[name], Text(name)]))));
   }
 
+  var reload = false;
+
+  void _scrollOn() async {
+    reload = true;
+    await Future.delayed(const Duration(milliseconds: 500));
+    setState(() {
+      reload = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(_source);
+    print(source);
     return Material(
       child: Stack(children: [
         Positioned(
@@ -112,7 +131,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
             onPressed: (){},
             textColor: Colors.white70,
               child: Text("JustMusic publisher: "
-                  "${_source["uploader"] != null ? _source["uploader"]["nickname"] : "unknown"}",
+                  "${source["uploader"] != null ? source["uploader"]["nickname"] : "unknown"}",
               style: TextStyle(fontSize: 12))))
         ),
         Positioned(
@@ -128,11 +147,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
               Container(child: _iconButton("Block", _blocked)),
             ])),
         Center(
-          child: YoutubePlayer(
+          child: reload == false ? YoutubePlayer(
             context: context,
-            videoId: YoutubePlayer.convertUrlToId(_source["videoUrl"]),
+            videoId: YoutubePlayer.convertUrlToId(source["videoUrl"]),
             flags: YoutubePlayerFlags(
-              autoPlay: false,
+              disableDragSeek: true,
+              autoPlay: true,
               mute: false,
               showVideoProgressIndicator: true,
             ),
@@ -145,23 +165,30 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
               _controller = controller;
               _controller.cue();
               _controller.addListener(() {
+                print(_controller.value.playerState);
                 if (_controller.value.playerState == PlayerState.ENDED) {
                   _isRepeatOn == true
                       ? _controller.cue()
-                      : autoSwipe(widget._pageController);
+                      : autoSwipe(widget.pageController);
                 }
                 if (_controller.value.playerState == PlayerState.CUED) {
                   _controller.play();
                 }
                 if (_controller.value.hasError) {
                   print("Error: ${_controller.value.errorCode}");
-                  setState(() {
-                    _source["videoUrl"] = "https://youtu.be/HoXNpjUOx4U";
-                  });
+                  if (_controller.value.errorCode == 2) {
+                    setState(() {
+                      _scrollOn();
+                    });
+                  }else {
+                    setState((){
+                      source["videoUrl"] = "https://youtu.be/HoXNpjUOx4U";
+                    });
+                  }
                 }
               });
             },
-          ),
+          ) : Container(),
         ),
         Positioned(
             top: MediaQuery.of(context).size.height * .66,
@@ -177,7 +204,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                                   MediaQuery.of(context).size.height * .12),
                           child: Container(
                               padding: EdgeInsets.only(bottom: 7),
-                              child: Text(_source["title"],
+                              child: Text(source["title"],
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontFamily: "NotoSans",
@@ -188,19 +215,19 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                                   MediaQuery.of(context).size.height * .12),
                           child: Container(
                               padding: EdgeInsets.only(bottom: 7),
-                              child: Text(_source["description"],
+                              child: Text(source["description"],
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontFamily: "NotoSans",
                                       fontSize: 10)))),
                       Container(
-                          child: Text("Published at: ${_source["publishedAt"]}",
+                          child: Text("Published at: ${source["publishedAt"]}",
                               style: TextStyle(
                                   color: Colors.white70,
                                   fontFamily: "NotoSans",
                                   fontSize: 10))),
                       Container(
-                          child: Text("Channel: ${_source["channelName"]}",
+                          child: Text("Channel: ${source["channelName"]}",
                               style: TextStyle(
                                   color: Colors.white70,
                                   fontFamily: "NotoSans",

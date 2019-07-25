@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/models/user.dart';
-import 'package:JustMusic/routes/profile/profile_page.dart';
-
+import 'package:flutter/rendering.dart';
 import '../../main.dart';
-import '../../models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -19,7 +17,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   String _comment;
   ScrollController _scrollController =
       ScrollController(initialScrollOffset: 0.0);
-  ScrollPhysics _textFieldScrollPhysics = new CustomScrollPhysics();
   List<String> _selectedCategoryTitles = new List<String>();
   List<String> _allCategoryTitles = new List<String>();
   final _storage = FlutterSecureStorage();
@@ -30,7 +27,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
   @override
   void initState() {
-    _scrollController.addListener(_textFieldScrollListener);
+    _scrollController.addListener((){});
     _storage.read(key: "ak").then((key) {
       setState(() {
         _ak = key;
@@ -62,33 +59,13 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     });
   }
 
-  void _textFieldScrollListener() {
-    if (_scrollController.offset >=
-        _scrollController.position.maxScrollExtent) {
-      if (_scrollController.position.axisDirection == AxisDirection.down) {
-        print("down");
-        print(_textFieldScrollPhysics);
-        setState(() {});
-      } else {
-        print("imback");
-      }
-    } else if (_scrollController.offset <=
-        _scrollController.position.minScrollExtent) {
-      if (_scrollController.position.axisDirection == AxisDirection.up) {
-        print("top");
-      }
-    }
-  }
-
   void _getVideoIdAndCallApi(String receivedUri) {
     var uri = Uri.parse(receivedUri);
 
     void _setVideoInfo(videoId){
-      print(videoId);
       getYoutubeObject(_getYoutubeV3ApiUrl(_ak, videoId)).then((info) {
         setState(() {
           _httpError = false;
-          _selectedCategoryTitles = [];
           _videoInfo = info['pageInfo']['totalResults'] >= 1
               ? info
               : new Map<String, dynamic>();
@@ -175,10 +152,10 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           ),
           child: Container(
               padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
-              child: SingleChildScrollView(
-                  physics: _textFieldScrollPhysics,
+              child:
+              SingleChildScrollView(
                   controller: _scrollController,
-                  child: Column(children: [
+                  child:  Column(children: [
                     Text("$title\n",
                         style: TextStyle(
                             color: Colors.white,

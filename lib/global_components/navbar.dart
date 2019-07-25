@@ -51,7 +51,6 @@ class _NavBarState extends State<NavBar> {
                     : Color.fromRGBO(190, 190, 190, 1),
                 size: 30.0)),
         onPressed: () {
-          print(widget.user);
 //          _animationController.forward();
           if ((index == 4 || index == 2) && widget.user == null) {
             setModalBottomSheet(context);

@@ -28,6 +28,8 @@ class Api {
           print("Running on an IOS emulator");
         }
       });
+    }else {
+      print("Platform: ${Platform()}");
     }
   }
 
@@ -104,7 +106,6 @@ class MusicApi {
     http.Response response;
     String path = "/$_musicPath/categories";
     Uri uri = Uri.http("${Api.host}:${Api.port}", path);
-    print(uri);
     try {
       response = await http.get(uri);
     } catch (e) {
@@ -113,7 +114,6 @@ class MusicApi {
     List<dynamic> decodedResponse = jsonDecode(response.body);
     print('Response status: ${response.statusCode}');
     if (response.statusCode == 200) {
-      print(decodedResponse);
       return decodedResponse;
     } else {
       throw Exception('Failed to load categories');
