@@ -1,10 +1,12 @@
 device_info=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/device_info-0.4.0+2/
-firebase_auth=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_auth-0.11.1+7/
-firebase_core=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core-0.4.0+6/
+firebase_auth=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_auth-0.11.1+12/
+firebase_core=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core-0.4.0+8/
 flutter_secure_storage=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_secure_storage-3.2.1+1/
-geolocator=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/geolocator-5.0.1/
+fluttertoast=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/fluttertoast-3.1.0/
+geolocator=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/geolocator-5.1.1+1/
 google_api_availability=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/google_api_availability-2.0.1/
 location_permissions=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/location_permissions-2.0.2/
-path_provider=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.1.2/
+path_provider=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.2.0/
+shared_preferences=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.5.3+4/
 video_player=/Users/jayjeong/AndroidStudioProjects/justmusic/video_player-0.10.1+2-hijacking/
 ytview=/Users/jayjeong/flutter/flutter/.pub-cache/hosted/pub.dartlang.org/ytview-1.0.0/

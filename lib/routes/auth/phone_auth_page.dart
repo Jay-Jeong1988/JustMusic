@@ -3,7 +3,6 @@ import 'package:JustMusic/global_components/api.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/user.dart';
 import '../../main.dart';

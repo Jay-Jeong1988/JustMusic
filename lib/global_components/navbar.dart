@@ -1,4 +1,4 @@
-import 'package:JustMusic/routes/home/components/youtube_player.dart';
+import 'package:JustMusic/global_components/singleton.dart';
 import 'package:flutter/material.dart';
 import '../global_components/modal_bottom_sheet.dart';
 import '../routes/home/home_page.dart';
@@ -7,9 +7,9 @@ import '../routes/category/category_page.dart';
 import '../routes/create/upload_music_page.dart';
 
 class NavBar extends StatefulWidget {
-  var user;
-  var currentPage;
-  Function getSelectedPageFromChild;
+  final user;
+  final currentPage;
+  final Function getSelectedPageFromChild;
 
   NavBar({this.user, this.getSelectedPageFromChild, this.currentPage});
 
@@ -19,6 +19,7 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> {
   int _clicked = 1;
+  Singleton _singleton = new Singleton();
   List<Widget> navPages = [
     HomePage(
       key: PageStorageKey('Page1'),
@@ -29,8 +30,10 @@ class _NavBarState extends State<NavBar> {
     ProfilePage(),
   ];
 
+  @override
   void initState() {
-    print("user: ${widget.user}");
+    super.initState();
+    _clicked = _singleton.clicked ?? _clicked;
   }
 
   Widget navButton(IconData icon, int index) {
@@ -65,7 +68,7 @@ class _NavBarState extends State<NavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
+    return _singleton.isFullScreen ? Container() : Positioned(
         bottom: 0,
         child: BottomAppBar(
             elevation: 0,

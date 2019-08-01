@@ -62,26 +62,26 @@ class _GeoListenPageState extends State<GeoListenPage> {
       );
   }
 
-  Future<Position> _getLocation() async {
-    var currentLocation;
-    try {
-      currentLocation = await geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best);
-    } catch (e) {
-      currentLocation = null;
-    }
-    return currentLocation;
-  }
-
-  Future<List<Placemark>> _getPlacemark(userLocation) async {
-    List<Placemark> placemark;
-    try {
-      placemark = await geolocator.placemarkFromPosition(userLocation);
-    } catch (e) {
-      placemark = null;
-    }
-    return placemark;
-  }
+//  Future<Position> _getLocation() async {
+//    var currentLocation;
+//    try {
+//      currentLocation = await geolocator.getCurrentPosition(
+//          desiredAccuracy: LocationAccuracy.best);
+//    } catch (e) {
+//      currentLocation = null;
+//    }
+//    return currentLocation;
+//  }
+//
+//  Future<List<Placemark>> _getPlacemark(userLocation) async {
+//    List<Placemark> placemark;
+//    try {
+//      placemark = await geolocator.placemarkFromPosition(userLocation);
+//    } catch (e) {
+//      placemark = null;
+//    }
+//    return placemark;
+//  }
 
   void _setLocationAndCountry() async {
     var currentLocation;

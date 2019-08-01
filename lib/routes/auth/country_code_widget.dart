@@ -16,6 +16,7 @@ class _CountryCodeWidgetState extends State<CountryCodeWidget> {
   List<Country> filteredCountries = [];
 
   void initState(){
+    super.initState();
     filteredCountries.addAll(allCountries);
   }
 

@@ -2,12 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../global_components/geolocation.dart';
-import '../../models/user.dart';
 
 class ProfilePage extends StatefulWidget {
-//  ProfilePage(Key key, user) : super(key: key);
-
   @override
   ProfilePageState createState() => ProfilePageState();
 }
@@ -18,6 +14,7 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> userFuture;
 
   void initState(){
+    super.initState();
     userFuture = getUserFromStorage();
   }
 

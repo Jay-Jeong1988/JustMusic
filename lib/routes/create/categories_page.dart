@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CategoriesPage extends StatefulWidget {
-  List<String> allCategoryTitles;
-  List<String> selectedCategoryTitles;
+  final List<String> allCategoryTitles;
+  final List<String> selectedCategoryTitles;
   CategoriesPage(this.allCategoryTitles, this.selectedCategoryTitles);
 
   State<CategoriesPage> createState() => CategoriesPageState();
@@ -12,6 +12,7 @@ class CategoriesPageState extends State<CategoriesPage> {
   List<String> _selectedCategoryTitles = [];
 
   void initState(){
+    super.initState();
     if (widget.selectedCategoryTitles != null) {
       _selectedCategoryTitles = widget.selectedCategoryTitles.isNotEmpty ?
       widget.selectedCategoryTitles
@@ -41,14 +42,15 @@ class CategoriesPageState extends State<CategoriesPage> {
            return ListTile(
                   title: Text(widget.allCategoryTitles[index],
                       style: TextStyle(color: Colors.white)),
-                  trailing: _selectedCategoryTitles.contains(widget.allCategoryTitles[index]) ?
+                  trailing: _selectedCategoryTitles.contains(widget.allCategoryTitles[index].toLowerCase()) ?
                   Icon(Icons.music_note, color: Colors.white) : Text(""),
                   onTap: (){
+                    var categoryTitle = widget.allCategoryTitles[index].toLowerCase();
                     setState((){
-                      _selectedCategoryTitles.contains(widget.allCategoryTitles[index]) ?
-                        _selectedCategoryTitles.remove(widget.allCategoryTitles[index])
-                      : _selectedCategoryTitles.add(widget.allCategoryTitles[index]);
-                      print("${widget.allCategoryTitles[index]} is selected");
+                      _selectedCategoryTitles.contains(categoryTitle) ?
+                        _selectedCategoryTitles.remove(categoryTitle)
+                      : _selectedCategoryTitles.add(categoryTitle);
+                      print("$categoryTitle is selected");
                     });
                   }
               );

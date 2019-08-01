@@ -6,7 +6,7 @@ import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
-  List<Category> selectedCategories;
+  final List<Category> selectedCategories;
   HomePage({Key key, this.selectedCategories});
   @override
   _HomePageState createState() => _HomePageState();
@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    super.initState();
     if (widget.selectedCategories != null) {
       _categoryTitles.addAll(widget.selectedCategories.map((category) {
         return category.title;
@@ -56,7 +57,7 @@ class _HomePageState extends State<HomePage> {
 
   void _scrollOn() async {
     _pageViewScrollPhysics = NeverScrollableScrollPhysics();
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 1000));
     setState((){
       _pageViewScrollPhysics = AlwaysScrollableScrollPhysics();
     });
@@ -77,6 +78,12 @@ class _HomePageState extends State<HomePage> {
                   setState(() {
                     _scrollOn();
                   });
+                  if (index >= _sources.length - 1){
+                    setState((){
+                      _sources = shuffle(_sources);
+                      _pageController.jumpToPage(0);
+                    });
+                  }
                 },
                 children: []..addAll(_sources.map((_source) {
                   return YoutubePlayerScreen(

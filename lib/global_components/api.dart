@@ -4,7 +4,7 @@ import 'package:device_info/device_info.dart';
 import 'package:http/http.dart' as http;
 
 class Api {
-  static String host;
+  static String host = "34.222.61.255";
   static String port = "3000";
 
   Api(){

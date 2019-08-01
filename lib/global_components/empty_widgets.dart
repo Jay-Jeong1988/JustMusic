@@ -16,7 +16,7 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class EmptyShadowAppBar extends StatelessWidget {
   final String text;
-  List<Category> selectedCategories;
+  final List<Category> selectedCategories;
   EmptyShadowAppBar({this.text, this.selectedCategories});
 
   @override
@@ -76,7 +76,7 @@ class EmptyShadowGrid extends StatelessWidget {
 }
 
 class EmptySearchWidget extends StatelessWidget {
-  String textInput;
+  final String textInput;
   EmptySearchWidget({this.textInput});
 
   @override

@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
+import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
 import '../../models/category.dart';
 import '../../global_components/empty_widgets.dart';
@@ -11,8 +16,10 @@ class CategoryPage extends StatefulWidget {
   State<CategoryPage> createState() => CategoryPageState();
 }
 
-class CategoryPageState extends State<CategoryPage> {
-  var futureCategories;
+class CategoryPageState extends State<CategoryPage> with SingleTickerProviderStateMixin {
+  var loadCategoriesFromServer;
+  var loadCategoriesFromDisk;
+  bool loadingFromServer = false;
   List<dynamic> _allCategories = [];
   List<Category> _selectedCategories = [];
   List<Color> gridBgColors = [
@@ -22,39 +29,81 @@ class CategoryPageState extends State<CategoryPage> {
     Color.fromRGBO(115, 149, 173, 1),
     Color.fromRGBO(176, 162, 149, 1),
   ];
-  LocalStorage _localStorage = new LocalStorage("categoriesContainer");
+  Singleton _singleton = Singleton();
+  Animation<double> animation;
+  AnimationController controller;
 
   @override
   void initState() {
-    if (_localStorage.getItem("categories") == null){
-      futureCategories = MusicApi.getCategories();
-      futureCategories.then((List<dynamic> categories) {
-        categories.sort((a, b) {
-          return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
-        });
-        _allCategories.addAll(categories.map((category) {
-          return Category.fromJson(category);
-        }));
-        _localStorage.setItem("categories", categories);
+    super.initState();
+    controller =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    animation = Tween<double>(begin: 10, end: 40).animate(controller)
+    ..addListener((){
+      setState(() {
       });
-      print("cateogries loaded from server");
-    }else {
-      futureCategories = _localStorage.ready;
-      _allCategories.addAll(_localStorage.getItem("categories").map((category){
-        return Category.fromJson(category);
-      }));
-      print("categories loaded from localstorage");
-    }
+    })
+      ..addStatusListener((status) {
+        if(status == AnimationStatus.completed) {
+          controller.reverse();
+        }else if(status == AnimationStatus.dismissed){
+          controller.forward();
+        }
+      });
+    controller.forward();
 
+    loadCategoriesFromDisk = _loadCategoriesFromDisk();
+    loadCategoriesFromDisk.then((categoriesFromDisk){
+      if (categoriesFromDisk == null){
+        setState(() {
+          loadingFromServer = true;
+        });
+        loadCategoriesFromServer = MusicApi.getCategories();
+        loadCategoriesFromServer.then((List<dynamic> categoriesFromServer) {
+          categoriesFromServer.sort((a, b) {
+            return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+          });
+          _allCategories.addAll(categoriesFromServer.map((category) {
+            return Category.fromJson(category);
+          }));
+          _setCategoriesToDisk(categoriesFromServer);
+        });
+        print("cateogries loaded from server");
+      }else {
+          _allCategories.addAll(categoriesFromDisk.map((category){
+            return Category.fromJson(category);
+          }));
+        print("categories loaded from localstorage");
+      }
+    });
+  }
+
+
+  _loadCategoriesFromDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var categories = prefs.getString('categories');
+    return categories == null ? null : json.decode(categories);
+  }
+
+  _setCategoriesToDisk(categories) async {
+    SharedPreferences prefs =  await SharedPreferences.getInstance();
+    prefs.setString("categories", json.encode(categories));
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: futureCategories,
+        future: loadingFromServer ? loadCategoriesFromServer : loadCategoriesFromDisk,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Scaffold(
+            return
+              Scaffold(
               body: _allCategories.isEmpty
                   ? EmptySearchWidget(textInput: "No existing category.")
                   : Stack(children: [
@@ -152,6 +201,7 @@ class CategoryPageState extends State<CategoryPage> {
                                                           navigatedPage: HomePage(
                                                               selectedCategories:
                                                                   _selectedCategories))));
+                                          _singleton.clicked = 0;
                                         },
                                         child: Text("PLAY"),
                                         textColor: Colors.white,
@@ -162,7 +212,10 @@ class CategoryPageState extends State<CategoryPage> {
                     ]),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return
+              Center(child:
+                CircularProgressIndicator()
+              );
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[

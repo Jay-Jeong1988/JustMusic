@@ -6,7 +6,6 @@ import '../../main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../utils/custom_scroll_physics.dart';
 import 'categories_page.dart';
 
 class UploadMusicPage extends StatefulWidget {
@@ -27,6 +26,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
   @override
   void initState() {
+    super.initState();
     _scrollController.addListener((){});
     _storage.read(key: "ak").then((key) {
       setState(() {
@@ -200,8 +200,9 @@ class UploadMusicPageState extends State<UploadMusicPage> {
         print("posting music succeeded");
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (BuildContext context) => App()),
+          MaterialPageRoute(builder: (BuildContext context) => AppScreen()),
         );
+//        _singleton.clicked = 1;
       } else {
         print("error: ${decodedResponse["error"]}");
         setState((){
