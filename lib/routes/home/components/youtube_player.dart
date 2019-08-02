@@ -133,19 +133,19 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
             "${source["description"].split(" ")[3]} "
             "${source["description"].split(" ")[4]} ..."
         : "";
-    return Material(
+    return Scaffold(
+      backgroundColor: Color.fromRGBO(10, 10, 15, 1),
+        body: Material(
       child: Stack(children: [
         Positioned(
-            top: MediaQuery.of(context).size.height * .05,
-//            left: MediaQuery.of(context).size.width * .82,
-            child: Container(
+            top: MediaQuery.of(context).size.height * .02,
+            child:
+            Container(
                 width: MediaQuery.of(context).size.width,
-                child: Center(
-                    child: Text("JUST MUSIC",
-                        style: TextStyle(
-                            foreground: Paint()..shader = linearGradient,
-                            fontFamily: "NotoSans",
-                            fontSize: 20))))),
+                child: Center(child:
+                Container(child: Image.asset('assets/images/justmusic_logo.png'),
+                width: 140))
+            )),
         Positioned(
             top: MediaQuery.of(context).size.height * .3,
             child: Container(
@@ -291,6 +291,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                                   fontSize: 10)))
                     ]))),
       ]),
-    );
+    ));
   }
 }

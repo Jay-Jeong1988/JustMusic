@@ -56,7 +56,7 @@ class _AppScreenState extends State<AppScreen> {
   @override
   void initState() {
     super.initState();
-//    Api(); //create an Api instance to determine which host the app should use
+    Api(); //create an Api instance to determine which host the app should use
     if (widget.user == null) {
       _storage.read(key: "user").then((userJson) {
         if (userJson != null && jsonDecode(userJson)["user"].isNotEmpty) {
@@ -128,17 +128,8 @@ class _AppScreenState extends State<AppScreen> {
             ])));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return
-//              Scaffold(
-//                body: Stack(children: [
-//              Center(child: CircularProgressIndicator()),
-//              NavBar(
-//                  user: user,
-//                  getSelectedPageFromChild: getSelectedPageFromChild)
-//            ]));
               Center(child:
               Container(
-//              width: animation.value,
-//            height: animation.value,
                   child: Logo()
               ));
           } else if (snapshot.hasError) {

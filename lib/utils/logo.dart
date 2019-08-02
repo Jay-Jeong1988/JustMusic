@@ -10,6 +10,7 @@ class LogoState extends State<Logo> with SingleTickerProviderStateMixin {
 
   @override
   void initState(){
+    super.initState();
     controller =
         AnimationController(duration: const Duration(seconds: 1), vsync: this);
     animation = Tween<double>(begin: 190, end: 200).animate(controller)
@@ -30,6 +31,7 @@ class LogoState extends State<Logo> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     controller.dispose();
+    print("logo animation disposed");
     super.dispose();
   }
 

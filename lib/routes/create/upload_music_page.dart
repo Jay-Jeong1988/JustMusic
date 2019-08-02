@@ -183,6 +183,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   Future<void> saveMusicRequest() async {
     Map<String, dynamic> music = new Map<String, dynamic>();
     Map<String, dynamic> snippet = _videoInfo["items"][0]["snippet"];
+    music["thumbnailUrl"] = snippet['thumbnails']['medium']['url'];
     music["title"] = snippet["title"];
     music["description"] = snippet["description"];
     music["publishedAt"] = snippet["publishedAt"].split("T")[0];
@@ -227,7 +228,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromRGBO(43, 47, 57, 1.0),
+        backgroundColor: Color.fromRGBO(30, 30, 35, 1.0),
         appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 15.0,
@@ -310,8 +311,8 @@ class UploadMusicPageState extends State<UploadMusicPage> {
                             boxShadow: [
                               _videoInfo.isNotEmpty
                                   ? BoxShadow(
-                                      color: Color.fromRGBO(240, 240, 250, .5),
-                                      blurRadius: 10.0,
+                                      color: Color.fromRGBO(240, 240, 250, .7),
+                                      blurRadius: 12.0,
                                     )
                                   : BoxShadow(color: Colors.transparent)
                             ],

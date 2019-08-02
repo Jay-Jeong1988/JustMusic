@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
-import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
@@ -104,6 +102,52 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
           if (snapshot.connectionState == ConnectionState.done) {
             return
               Scaffold(
+                backgroundColor: Color.fromRGBO(20, 20, 25, 1),
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  backgroundColor: Color.fromRGBO(20, 20, 25, 1),
+                  title: Center(
+                              child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                Text("Choose genres you like",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold)),
+                                _selectedCategories.isNotEmpty
+                                    ? RaisedButton(
+                                        onPressed: () {
+                                          Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      AppScreen(
+                                                          navigatedPage: HomePage(
+                                                              selectedCategories:
+                                                                  _selectedCategories))));
+                                          _singleton.clicked = 0;
+                                        },
+                                        child: Stack(children: [
+                                          Center(child: Icon(Icons.play_arrow, color: Color.fromRGBO(252, 76, 78, 1),
+                                          size: 50,)),
+                                          Center(child: Container(
+                                            padding: EdgeInsets.only(left: 17)
+                                          ,child: Text("PLAY",
+                                              style: TextStyle(
+                                                fontSize: 7,
+                                                  fontWeight: FontWeight.w300
+                                              )))),
+                                        ]),
+                                        textColor: Colors.white,
+                                        elevation: 0,
+                                        color: Colors.transparent)
+                                    : Container()
+                              ]))
+                ),
               body: _allCategories.isEmpty
                   ? EmptySearchWidget(textInput: "No existing category.")
                   : Stack(children: [
@@ -169,46 +213,6 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
                                         ]));
                                   })))))
                       ])),
-                      Container(
-                          padding: EdgeInsets.fromLTRB(20, 23, 20, 0),
-                          height: MediaQuery.of(context).size.height * 0.1,
-                          decoration: BoxDecoration(boxShadow: [
-                            BoxShadow(
-                              color: Color.fromRGBO(0, 0, 0, 0.4),
-                              blurRadius: 10.0,
-                            )
-                          ]),
-                          child: Center(
-                              child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                Text("Choose genres you like",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontFamily: 'NotoSans',
-                                        color: Colors.white,
-                                        fontSize: 18)),
-                                _selectedCategories.isNotEmpty
-                                    ? RaisedButton(
-                                        onPressed: () {
-                                          Navigator.pushReplacement(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (BuildContext
-                                                          context) =>
-                                                      AppScreen(
-                                                          navigatedPage: HomePage(
-                                                              selectedCategories:
-                                                                  _selectedCategories))));
-                                          _singleton.clicked = 0;
-                                        },
-                                        child: Text("PLAY"),
-                                        textColor: Colors.white,
-                                        elevation: 0,
-                                        color: Colors.blue)
-                                    : Container()
-                              ])))
                     ]),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {

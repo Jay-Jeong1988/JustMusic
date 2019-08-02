@@ -146,4 +146,24 @@ class MusicApi {
       throw Exception('Failed to load music data');
     }
   }
+
+  static Future<List<dynamic>> getMyPosts(userId) async {
+    var response;
+    String path = "/$_musicPath/myposts/$userId";
+    var uri = Uri.http("${Api.host}:${Api.port}", path);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    List<dynamic> decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      print("Decoded response: $decodedResponse");
+      return decodedResponse;
+    } else {
+      throw Exception('Failed to load music data');
+    }
+  }
 }
