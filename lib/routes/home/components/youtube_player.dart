@@ -1,15 +1,19 @@
 import 'dart:async';
 
+import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class YoutubePlayerScreen extends StatefulWidget {
   YoutubePlayerScreen(
-      {Key key, @required this.source, @required this.pageController});
+      {Key key, @required this.resetSources, @required this.user, @required this.source, @required this.pageController});
 
   final PageController pageController;
   final dynamic source;
+  final user;
+  final resetSources;
 
   State<YoutubePlayerScreen> createState() => _YoutubePlayerScreenState();
 }
@@ -20,14 +24,11 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
   dynamic source;
   bool _isRepeatOn = false;
   bool _liked = false;
-  bool _reported = false;
+  bool _isSaving = false;
   bool _blocked = false;
   List<String> alternative = [];
   Singleton _singleton = new Singleton();
-
-  final Shader linearGradient = LinearGradient(
-    colors: <Color>[Colors.white54, Colors.white],
-  ).createShader(Rect.fromLTWH(80.0, 0.0, 200, 70.0));
+  DateTime _currentUtilBtnTappedTime;
 
   @override
   void initState() {
@@ -35,6 +36,8 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
     WidgetsBinding.instance.addObserver(this);
     source = widget.source;
     alternative.add(widget.source["videoUrl"]);
+    checkLikes();
+    checkBlocks();
   }
 
   @override
@@ -68,18 +71,18 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
   Widget _iconButton(name, statusVar) {
     Map<String, Color> colors = {
       "Like": Color.fromRGBO(233, 30, 98, 1),
-      "Report": Color.fromRGBO(255, 235, 59, 1),
+      "Save": Color.fromRGBO(20, 155, 255, 1),
       "Block": Color.fromRGBO(255, 0, 0, 1),
       "LikeDisabled": Color.fromRGBO(233, 30, 98, .5),
-      "ReportDisabled": Color.fromRGBO(255, 235, 59, .5),
+      "SaveDisabled": Color.fromRGBO(20, 155, 255, .5),
       "BlockDisabled": Color.fromRGBO(255, 0, 0, .5),
     };
     Map<String, Icon> icons = {
       "Like": Icon(Icons.favorite, size: 30),
-      "Report": Icon(Icons.error, size: 30),
+      "Save": Icon(Icons.library_music, size: 30),
       "Block": Icon(Icons.block, size: 30),
       "LikeDisabled": Icon(Icons.favorite_border, size: 30),
-      "ReportDisabled": Icon(Icons.error_outline, size: 30),
+      "SaveDisabled": Icon(Icons.library_add, size: 30),
       "BlockDisabled": Icon(Icons.block, size: 30)
     };
 
@@ -90,18 +93,61 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
             child: FlatButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
-                  setState(() {
-                    switch (name) {
-                      case "Like":
-                        _liked = _liked == false ? true : false;
-                        break;
-                      case "Report":
-                        _reported = _reported == false ? true : false;
-                        break;
-                      case "Block":
-                        _blocked = _blocked == false ? true : false;
+                  if (widget.user != null) {
+                    setState(() {
+                      switch (name) {
+                        case "Like":
+                          _liked ? MusicApi.perform(
+                              "unlike", widget.user.id, source["_id"])
+                              .then((j) {
+                            setState(() {
+                              _liked = false;
+                            });
+                          })
+                              : MusicApi.perform(
+                              "like", widget.user.id, source["_id"])
+                              .then((j) {
+                            setState(() {
+                              _liked = true;
+                            });
+                          });
+                          break;
+                        case "Save":
+                          setState(() {
+                            _isSaving = _isSaving == false ? true : false;
+                          });
+                          break;
+                        case "Block":
+                          _blocked ? MusicApi.perform(
+                              "unblock", widget.user.id, source["_id"])
+                              .then((j) {
+                                widget.resetSources();
+                            setState(() {
+                              _blocked = false;
+                            });
+                          })
+                              : MusicApi.perform(
+                              "block", widget.user.id, source["_id"])
+                              .then((j) {
+                            setState(() {
+                              _blocked = true;
+                            });
+                          });
+                      }
+                    });
+                  }else {
+                    DateTime now = DateTime.now();
+                    if (_currentUtilBtnTappedTime == null ||
+                        now.difference(_currentUtilBtnTappedTime) > Duration(seconds: 3)) {
+                      _currentUtilBtnTappedTime = now;
+                      Fluttertoast.showToast(
+                          msg: "You need to log in",
+                          gravity: ToastGravity.CENTER,
+                          backgroundColor: Color.fromRGBO(0, 0, 0, 0.5)
+                      );
                     }
-                  });
+                    print("user is null");
+                  }
                 },
                 textColor: statusVar == false
                     ? colors["${name}Disabled"]
@@ -123,6 +169,30 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
   }
 
   bool _isReadMore = true;
+
+  void checkLikes (){
+    if(widget.user != null) {
+      MusicApi.check("isLiked", widget.user.id, source["_id"])
+          .then((result) {
+        setState(() {
+          print("liked: ${result['isLiked']}");
+          _liked = result['isLiked'];
+        });
+      });
+    }
+  }
+
+  void checkBlocks (){
+    if(widget.user != null) {
+      MusicApi.check("isBlocked", widget.user.id, source["_id"])
+          .then((result) {
+        setState(() {
+          print("blocked: ${result['isBlocked']}");
+          _blocked = result['isBlocked'];
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +235,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
             left: MediaQuery.of(context).size.width * .82,
             child: Column(children: [
               Container(child: _iconButton("Like", _liked)),
-              Container(child: _iconButton("Report", _reported)),
+              Container(child: _iconButton("Save", _isSaving)),
               Container(child: _iconButton("Block", _blocked)),
             ])),
         Center(

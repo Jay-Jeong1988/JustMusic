@@ -3,6 +3,7 @@ import 'package:JustMusic/global_components/api.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:localstorage/localstorage.dart';
 import 'dart:convert';
 import '../../models/user.dart';
 import '../../main.dart';
@@ -21,16 +22,17 @@ class _PhoneAuthState extends State<PhoneAuth> {
   Country _selectedCountry;
   TextEditingController _controller = new TextEditingController();
   final _storage = FlutterSecureStorage();
+  LocalStorage _localStorage = LocalStorage('countryContainer');
   Future<String> _getCountryFromStorage;
 
   @override
   void initState() {
-    _getCountryFromStorage = _storage.read(key: "country");
-    _getCountryFromStorage.then((country){
-      _selectedCountry = Country.fromJson(jsonDecode(country));
-      print(_selectedCountry.name);
-      print(_selectedCountry.isoCode);
-      print(_selectedCountry.dialingCode);
+    _getCountryFromStorage = _getCountryFromLocalStorage();
+    _getCountryFromStorage.then((countryJson){
+      if (countryJson != null) {
+        _selectedCountry = Country.fromJson(jsonDecode(countryJson));
+        print("selected country: ${_selectedCountry.name}");
+      }
     });
     super.initState();
     _signOut();
@@ -39,6 +41,11 @@ class _PhoneAuthState extends State<PhoneAuth> {
           user == null ? "No current firebase user" : "Firebase user online";
       print("AuthState: $authState");
     });
+  }
+
+  Future<String> _getCountryFromLocalStorage() async{
+    var country = await _localStorage.getItem("country");
+    return country;
   }
 
   Future<void> _signOut() async {
@@ -232,6 +239,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
                                             setState(() {
                                               _selectedCountry = result;
                                               _controller.clear();
+                                              print("selected country: ${result.name}");
                                             });
                                           }
                                         })),

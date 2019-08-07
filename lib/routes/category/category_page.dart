@@ -28,27 +28,10 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
     Color.fromRGBO(176, 162, 149, 1),
   ];
   Singleton _singleton = Singleton();
-  Animation<double> animation;
-  AnimationController controller;
 
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(duration: const Duration(seconds: 1), vsync: this);
-    animation = Tween<double>(begin: 10, end: 40).animate(controller)
-    ..addListener((){
-      setState(() {
-      });
-    })
-      ..addStatusListener((status) {
-        if(status == AnimationStatus.completed) {
-          controller.reverse();
-        }else if(status == AnimationStatus.dismissed){
-          controller.forward();
-        }
-      });
-    controller.forward();
 
     loadCategoriesFromDisk = _loadCategoriesFromDisk();
     loadCategoriesFromDisk.then((categoriesFromDisk){
@@ -86,12 +69,6 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
   _setCategoriesToDisk(categories) async {
     SharedPreferences prefs =  await SharedPreferences.getInstance();
     prefs.setString("categories", json.encode(categories));
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 
   @override

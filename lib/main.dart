@@ -4,6 +4,7 @@ import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:localstorage/localstorage.dart';
 import './models/user.dart';
 import './routes/category/category_page.dart';
 import './global_components/navbar.dart';
@@ -45,6 +46,7 @@ class _AppScreenState extends State<AppScreen> {
   Country userCountry;
   Widget currentPage;
   FlutterSecureStorage _storage = FlutterSecureStorage();
+  LocalStorage _localStorage = LocalStorage("countryContainer");
   User user;
 
   void getSelectedPageFromChild(page) {
@@ -84,8 +86,10 @@ class _AppScreenState extends State<AppScreen> {
         widget.navigatedPage != null ? widget.navigatedPage : CategoryPage();
     countryFuture = getCountryInstance();
     countryFuture.then((country) {
-      _storage.write(key: "country", value: Country.toJson(country));
-      userCountry = country;
+      if (country != null) {
+        _localStorage.setItem("country", Country.toJson(country));
+        userCountry = country;
+      }
     });
   }
 

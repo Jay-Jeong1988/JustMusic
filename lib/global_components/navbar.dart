@@ -80,7 +80,7 @@ class _NavBarState extends State<NavBar> {
                 BoxShadow(
                   spreadRadius: 5.0,
                   color: Color.fromRGBO(0, 0, 0, 0.4),
-                  blurRadius: 20.0,
+                  blurRadius: 10.0,
                 )
               ]),
               padding: EdgeInsets.only(left: 15.0, right: 15.0),

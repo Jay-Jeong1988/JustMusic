@@ -166,4 +166,71 @@ class MusicApi {
       throw Exception('Failed to load music data');
     }
   }
+
+  static Future<void> perform(action, userId, musicId) async {
+    var response;
+    var paths = {
+      "like": "/$_musicPath/likes/create",
+      "unlike": "/$_musicPath/likes/delete",
+      "block": "/$_musicPath/blocks/create",
+      "unblock": "/$_musicPath/blocks/delete"
+    };
+    String path = paths[action];
+    Map<String, String> queryParameters = {};
+    queryParameters["userId"] = userId;
+    queryParameters["musicId"] = musicId;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to perform $action');
+    }
+  }
+
+  static Future<List<dynamic>> getVideosFor(likesOrBlocks, userId) async {
+    var response;
+    String path = "/$_musicPath/$likesOrBlocks/$userId";
+    var uri = Uri.http("${Api.host}:${Api.port}", path);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    List<dynamic> decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      print("Decoded response: $decodedResponse");
+      return decodedResponse;
+    } else {
+      throw Exception('Failed to load liked music');
+    }
+  }
+
+  static Future check(isLikedOrIsBlocked, userId, musicId) async {
+    var response;
+    String path = "/$_musicPath/$isLikedOrIsBlocked";
+    Map<String, String> queryParameters = {};
+    queryParameters["userId"] = userId;
+    queryParameters["musicId"] = musicId;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      print("Decoded response: $decodedResponse");
+      return decodedResponse;
+    } else {
+      throw Exception('Failed to check $isLikedOrIsBlocked');
+    }
+  }
 }

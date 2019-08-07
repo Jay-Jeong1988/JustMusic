@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/models/category.dart';
+import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class HomePage extends StatefulWidget {
   final List<Category> selectedCategories;
@@ -19,10 +22,8 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> _sources = [];
   Future<List<dynamic>> _urlConverted;
   List<String> _categoryTitles = [];
-
-  final Shader linearGradient = LinearGradient(
-    colors: <Color>[Colors.white54, Colors.white],
-  ).createShader(Rect.fromLTWH(80.0, 0.0, 200, 70.0));
+  final _storage = FlutterSecureStorage();
+  User _user;
 
   @override
   void initState() {
@@ -32,6 +33,10 @@ class _HomePageState extends State<HomePage> {
         return category.title;
       }));
     }
+
+    _storage.read(key: "user").then((userJson){
+      _user = User.fromJson(jsonDecode(userJson));
+    });
 
     _urlConverted = MusicApi.getMusics(_categoryTitles);
     _urlConverted.then((musics) {
@@ -63,6 +68,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void resetSources() {
+    setState(() {
+      print("jjjjjjjj");
+      _sources = shuffle(_sources);
+    });
+  }
+
   Widget _pageBuilder(){
     return FutureBuilder(
         future: _urlConverted,
@@ -87,20 +99,18 @@ class _HomePageState extends State<HomePage> {
                 },
                 children: []..addAll(_sources.map((_source) {
                   return YoutubePlayerScreen(
-                      source: _source, pageController: _pageController);
+                      source: _source, pageController: _pageController, user: _user, resetSources: resetSources);
                 })))
                 : Stack(children: [
               Positioned(
-                  top: MediaQuery.of(context).size.height * .05,
-                  child: Container(
+                  top: MediaQuery.of(context).size.height * .02,
+                  child:
+                  Container(
                       width: MediaQuery.of(context).size.width,
-                      child: Center(
-                          child: Text("JUST MUSIC",
-                              style: TextStyle(
-                                  foreground: Paint()
-                                    ..shader = linearGradient,
-                                  fontFamily: "NotoSans",
-                                  fontSize: 20))))),
+                      child: Center(child:
+                      Container(child: Image.asset('assets/images/justmusic_logo.png'),
+                          width: 140))
+                  )),
               Center(
                   child: Text(
                       "Unknown Error:\n Please choose genre(s) and try again !",
