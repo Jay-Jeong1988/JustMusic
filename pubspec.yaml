@@ -58,6 +58,9 @@ flutter:
     - family: NotoSans
       fonts:
         - asset: assets/fonts/NotoSans-Regular.ttf
+    - family: BalooChettan
+      fonts:
+        - asset: assets/fonts/BalooChettan-Regular.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

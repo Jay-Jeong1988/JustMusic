@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
+import 'package:JustMusic/routes/profile/profile_page.dart';
 import 'package:flutter/rendering.dart';
 import '../../main.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   Map<String, dynamic> _videoInfo = {};
   bool _httpError = false;
   User _user;
+  Singleton _singleton = Singleton();
 
   @override
   void initState() {
@@ -35,10 +38,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     }).catchError((error) {
       print(error);
     });
-    _storage.read(key: "user").then((userJson){
-      _user = User.fromJson(jsonDecode(userJson));
-      print(_user.nickname);
-    });
+    _user = _singleton.user;
     MusicApi.getCategories().then((categories) {
       categories.sort((a, b) {
         return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
@@ -201,9 +201,8 @@ class UploadMusicPageState extends State<UploadMusicPage> {
         print("posting music succeeded");
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (BuildContext context) => AppScreen()),
+          MaterialPageRoute(builder: (BuildContext context) => AppScreen(navigatedPage: ProfilePage(),)),
         );
-//        _singleton.clicked = 1;
       } else {
         print("error: ${decodedResponse["error"]}");
         setState((){

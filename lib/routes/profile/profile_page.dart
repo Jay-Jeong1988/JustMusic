@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/models/user.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -10,9 +9,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin{
-  Map<String, dynamic> user;
-  final _storage = FlutterSecureStorage();
-  Future<void> userFuture;
+  User _user;
   List<dynamic> _myPosts = [];
   List<dynamic> _myLikes = [];
   List<dynamic> _myBlocks = [];
@@ -21,69 +18,64 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
   Future<List<dynamic>> _fetchLikedMusic;
   Future<List<dynamic>> _fetchBlockedMusic;
   int _currentTabIndex = 0;
+  int totalLikes = 0;
+  Singleton _singleton = Singleton();
 
   void initState() {
     super.initState();
 
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0)
-    ..addListener((){
-      print(_tabController.index);
-      switch (_tabController.index) {
-        case 0:
-          if (_myPosts.isEmpty) {
-            _fetchMyPosts.then((posts) {
-              setState(() {
-                _myPosts..addAll(posts);
+      ..addListener(() {
+        print(_tabController.index);
+        switch (_tabController.index) {
+          case 0:
+            if (_myPosts.isEmpty) {
+              _fetchMyPosts.then((posts) {
+                setState(() {
+                  _myPosts..addAll(posts);
+                });
               });
-            });
-          }
-          break;
-        case 1:
-          if (_myLikes.isEmpty) {
-            _fetchLikedMusic
-                .then((posts) {
-              setState(() {
-                _myLikes..addAll(posts);
+            }
+            break;
+          case 1:
+            if (_myLikes.isEmpty) {
+              _fetchLikedMusic
+                  .then((posts) {
+                setState(() {
+                  _myLikes..addAll(posts);
+                });
               });
-            });
-          }
-          break;
-        case 2:
-          if (_myBlocks.isEmpty) {
-            _fetchBlockedMusic
-                .then((posts) {
-              setState(() {
-                _myBlocks..addAll(posts);
+            }
+            break;
+          case 2:
+            if (_myBlocks.isEmpty) {
+              _fetchBlockedMusic
+                  .then((posts) {
+                setState(() {
+                  _myBlocks..addAll(posts);
+                });
               });
-            });
-          }
-      }
-      setState((){
-        _currentTabIndex = _tabController.index;
+            }
+        }
+        setState(() {
+          _currentTabIndex = _tabController.index;
+        });
       });
-    });
-    userFuture = getUserFromStorage().then((user) {
-      if (user != null) {
-        _fetchMyPosts = MusicApi.getMyPosts(user["_id"]);
-        _fetchLikedMusic = MusicApi.getVideosFor("likes", user["_id"]);
-        _fetchBlockedMusic = MusicApi.getVideosFor("blocks", user["_id"]);
+      _user = _singleton.user;
+      if (_user != null) {
+        _fetchMyPosts = MusicApi.getMyPosts(_user.id);
+        _fetchLikedMusic = MusicApi.getVideosFor("likes", _user.id);
+        _fetchBlockedMusic = MusicApi.getVideosFor("blocks", _user.id);
 
         _fetchMyPosts.then((posts) {
+          for (var post in posts) {
+            totalLikes += post['likesCount'];
+          }
           setState(() {
-            this.user = user;
             _myPosts..addAll(posts);
           });
         });
       }
-    });
-  }
-
-  Future<dynamic> getUserFromStorage() async {
-    var user = await _storage.read(key: "user").then((userJson) {
-      return jsonDecode(userJson)["user"];
-    });
-    print("user: $user");
-    return user;
   }
 
   final Shader linearGradient = LinearGradient(
@@ -102,27 +94,46 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
             padding: EdgeInsets.only(bottom: 50),
             children: []..addAll(sources[type].map((post) {
                 return Container(
-                    height: 85,
+                    height: 90,
                     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     child: Row(children: [
                       ConstrainedBox(
                           constraints:
-                              BoxConstraints(maxWidth: 100, maxHeight: 70),
+                              BoxConstraints(maxWidth: 113, maxHeight: 70),
                           child: Container(
                               decoration: BoxDecoration(
                                   border: Border.all(
                                       color: Colors.white54, width: 0.5)),
-                              width: 107,
-                              height: 60,
-                              child: post['thumbnailUrl'] != null
-                                  ? Image.network(post['thumbnailUrl'])
-                                  : Image.network(
-                                      "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg"))),
+                              width: 113,
+                              height: 67,
+                              child: Stack(children: [
+                                post['thumbnailUrl'] != null
+                                    ? Center(child: Image.network(post['thumbnailUrl']))
+                                    : Center(child: Image.network(
+                                        "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg")),
+                                type == "myPosts" ? Positioned(
+                                    top: 0,
+                                    left: 2,
+                                    child: Container(
+                                        child: Stack(children: [
+                                      Center(child: Text("${post['likesCount']}", style: TextStyle(
+                                        fontFamily: "BalooChettan",
+                                        fontWeight: FontWeight.normal,
+                                          color: Color.fromRGBO(220, 100, 128, 1))))
+                                    ])))
+                              : type == "myBlocks" ? Center(
+                                    child: Icon(Icons.block, color: Color.fromRGBO(255, 0, 0, 1), size: 50)
+                                        )
+                                    : Container()
+                              ]),
+                      )),
                       Flexible(
                           child: Container(
                               padding: EdgeInsets.all(10),
-                              child: Text("${post["title"]}",
-                                  style: TextStyle(color: Colors.white))))
+                              child: Stack(children: [
+                                Text("${post["title"]}",
+                                  style: TextStyle(color: Colors.white)),
+                              ])))
                     ]));
               }))));
   }
@@ -131,7 +142,7 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
   Widget build(BuildContext context) {
     print(_currentTabIndex);
     return FutureBuilder(
-        future: userFuture,
+        future: _fetchMyPosts,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Scaffold(
@@ -168,8 +179,8 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
                                     Container(
                                         margin: EdgeInsets.only(top: 50),
                                         child: Text(
-                                            user != null
-                                                ? user['nickname']
+                                            _user != null
+                                                ? _user.nickname
                                                 : "",
                                             style: TextStyle(
                                                 fontFamily: "NotoSans",
@@ -177,19 +188,27 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
                                                 color: Colors.white))),
                                     Container(
                                         child: Text(
-                                            user != null
-                                                ? "${user['followers']} Followers"
+                                            _user != null
+                                                ? "${_user.followers} Followers"
                                                 : "?",
                                             style: TextStyle(
                                                 fontSize: 13,
                                                 fontFamily: "NotoSans",
                                                 color: Colors.white))),
                                     Container(
-                                        child: Text("0 Likes on my posts",
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                          Text("$totalLikes Likes ",
                                             style: TextStyle(
                                                 fontSize: 13,
-                                                fontFamily: "NotoSans",
-                                                color: Colors.white))),
+                                                fontFamily: "BalooChettan",
+                                                color: Color.fromRGBO(220, 100, 128, 1))),
+                                          Text("on my posts",
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontFamily: "NotoSans",
+                                                  color: Colors.white))])),
                                     Container(
                                         margin: EdgeInsets.only(top: 5),
                                         height: 50,
@@ -201,20 +220,23 @@ class ProfilePageState extends State<ProfilePage> with SingleTickerProviderState
                                           tabs: [
                                             Tab(
                                                 child:
-                                                Row(children: [
+                                                Row(mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
                                                   Text("My Posts "),
                                                   _currentTabIndex == 0 ? Text("${_myPosts.length}", style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1))
                                                   ): Container()])),
                                             Tab(
                                                 child:
-                                                Row(children: [
+                                                Row(mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
                                                   Text("My Likes "),
                                                   _currentTabIndex == 1 ? Text("${_myLikes.length}", style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1))
                                                   ): Container()])
                                             ),
                                             Tab(
                                                 child:
-                                                Row(children: [
+                                                Row(mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
                                                   Text("Blocked "),
                                                   _currentTabIndex == 2 ? Text("${_myBlocks.length}", style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1))
                                                   ): Container()])),

@@ -121,7 +121,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                           _blocked ? MusicApi.perform(
                               "unblock", widget.user.id, source["_id"])
                               .then((j) {
-                                widget.resetSources();
                             setState(() {
                               _blocked = false;
                             });
@@ -129,6 +128,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                               : MusicApi.perform(
                               "block", widget.user.id, source["_id"])
                               .then((j) {
+                            widget.resetSources();
                             setState(() {
                               _blocked = true;
                             });
@@ -196,13 +196,14 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
 
   @override
   Widget build(BuildContext context) {
-    String shortenedDescription = source["description"] != null
-        ? "${source["description"].split(" ")[0]} "
-            "${source["description"].split(" ")[1]} "
-            "${source["description"].split(" ")[2]} "
-            "${source["description"].split(" ")[3]} "
-            "${source["description"].split(" ")[4]} ..."
-        : "";
+    List<String> descriptionArray = source["description"].split(" ");
+    String shortenedDescription = "";
+    for(var i = 0; i < 5; i++) {
+      if (descriptionArray.length > i) {
+        shortenedDescription += "${descriptionArray[i]} ";
+        if (i == 4) shortenedDescription += "...";
+      }
+    }
     return Scaffold(
       backgroundColor: Color.fromRGBO(10, 10, 15, 1),
         body: Material(

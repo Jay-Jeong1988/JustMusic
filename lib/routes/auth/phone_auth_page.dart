@@ -1,11 +1,13 @@
 import 'package:JustMusic/global_components/AK.dart';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/routes/create/upload_music_page.dart';
+import 'package:JustMusic/routes/profile/profile_page.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:localstorage/localstorage.dart';
 import 'dart:convert';
-import '../../models/user.dart';
 import '../../main.dart';
 import './country_code_widget.dart';
 import '../../models/country.dart';
@@ -24,6 +26,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
   final _storage = FlutterSecureStorage();
   LocalStorage _localStorage = LocalStorage('countryContainer');
   Future<String> _getCountryFromStorage;
+  Singleton _singleton = Singleton();
 
   @override
   void initState() {
@@ -147,19 +150,16 @@ class _PhoneAuthState extends State<PhoneAuth> {
     UserApi.signUpRequest(user).then((response){
       Map<String, dynamic> decodedResponse = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        print(decodedResponse['user']);
-        User user = User.fromJson(decodedResponse);
-
         _storage.deleteAll().then((result){
           _storeKey();
+          _storage.write(key: "user", value: response.body);
         }).catchError((error){
           print(error);
         });
-        if (user != null) {
-          _storage.write(key: "user", value: response.body);
-        }
         Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) => AppScreen(user: user)),(_)=>false);
+            MaterialPageRoute(builder: (context) => AppScreen(navigatedPage:
+              _singleton.clicked == 4 ? ProfilePage() : UploadMusicPage()
+              )),(_)=>false);
 
       } else {
         FirebaseAuth.instance.signOut();

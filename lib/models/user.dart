@@ -7,6 +7,7 @@ class User {
   final String nickname;
   final ContactInfo contactInfo;
   final Profile profile;
+  final followers;
 
   User({
     this.id,
@@ -15,17 +16,18 @@ class User {
     this.nickname,
     this.contactInfo,
     this.profile,
+    this.followers
   }){
     print("new user instance is created");
   }
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    var user = json["user"];
+  factory User.fromJson(Map<String, dynamic> user) {
     return User(
       id: user['_id'],
       accountId: user['accountId'],
       password: user['password'],
       nickname: user['nickname'],
+      followers: user['followers'],
       contactInfo: new ContactInfo(
         id: user['contactInfo']['_id'],
         email: user['contactInfo']['email'],
@@ -70,7 +72,7 @@ class ContactInfo {
     this.id,
     this.email,
     this.phoneNumber,
-  }){print("new contactInfo intance is created");}
+  });
 }
 
 class Profile {
@@ -84,5 +86,5 @@ class Profile {
     this.firstName,
     this.lastName,
     this.birthDay,
-  }){print("new Profile intance is created");}
+  });
 }

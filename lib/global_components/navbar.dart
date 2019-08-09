@@ -57,6 +57,7 @@ class _NavBarState extends State<NavBar> {
 //          _animationController.forward();
           if ((index == 4 || index == 2) && widget.user == null) {
             setModalBottomSheet(context);
+            _singleton.clicked = index == 4 ? 4 : 2;
           } else {
             setState(() {
               _clicked = index;

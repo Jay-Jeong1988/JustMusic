@@ -120,9 +120,9 @@ class MusicApi {
     }
   }
 
-  static Future<List<dynamic>> getMusics(categories) async {
+  static Future<List<dynamic>> getMusics(categories, {userId}) async {
     var response;
-    String path = "/$_musicPath/all";
+    String path = "/$_musicPath/all/${userId ?? '111111111111111111111111'}"; //due to mongodb error check, userId has to be 24 digits number
     Map<String, String> queryParameters = {};
     int index = 0;
     categories.forEach((category){
@@ -136,13 +136,14 @@ class MusicApi {
     } catch (e) {
       print(e);
     }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
+    var decodedResponse = jsonDecode(response.body);
     print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
+      print(decodedResponse);
       throw Exception('Failed to load music data');
     }
   }
@@ -156,13 +157,14 @@ class MusicApi {
     } catch (e) {
       print(e);
     }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
+    var decodedResponse = jsonDecode(response.body);
     print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
+      print(decodedResponse);
       throw Exception('Failed to load music data');
     }
   }
@@ -200,13 +202,14 @@ class MusicApi {
     } catch (e) {
       print(e);
     }
-    List<dynamic> decodedResponse = jsonDecode(response.body);
+    var decodedResponse = jsonDecode(response.body);
     print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
+      print(decodedResponse);
       throw Exception('Failed to load liked music');
     }
   }

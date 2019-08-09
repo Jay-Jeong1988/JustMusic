@@ -1,12 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/category.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
+import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../main.dart';
 
 class HomePage extends StatefulWidget {
   final List<Category> selectedCategories;
@@ -15,30 +17,27 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
   ScrollPhysics _pageViewScrollPhysics;
   final _pageController = PageController(initialPage: 0);
   PageView pageView;
   List<dynamic> _sources = [];
   Future<List<dynamic>> _urlConverted;
   List<String> _categoryTitles = [];
-  final _storage = FlutterSecureStorage();
   User _user;
+  Singleton _singleton = Singleton();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.selectedCategories != null) {
       _categoryTitles.addAll(widget.selectedCategories.map((category) {
         return category.title;
       }));
     }
-
-    _storage.read(key: "user").then((userJson){
-      _user = User.fromJson(jsonDecode(userJson));
-    });
-
-    _urlConverted = MusicApi.getMusics(_categoryTitles);
+    _user = _singleton.user;
+    _urlConverted = MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null);
     _urlConverted.then((musics) {
       _sources = shuffle(musics);
     });
@@ -70,69 +69,99 @@ class _HomePageState extends State<HomePage> {
 
   void resetSources() {
     setState(() {
-      print("jjjjjjjj");
       _sources = shuffle(_sources);
+      _pageController.nextPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
     });
   }
 
   Widget _pageBuilder(){
     return FutureBuilder(
         future: _urlConverted,
-        builder: (BuildContext context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return _sources.isNotEmpty
-                ? PageView(
-                physics: _pageViewScrollPhysics,
-                controller: _pageController,
-                scrollDirection: Axis.vertical,
-                pageSnapping: true,
-                onPageChanged: (index) {
+        builder: (BuildContext context, snapshot)
+    {
+      if (snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return _sources.isNotEmpty
+              ? PageView(
+              physics: _pageViewScrollPhysics,
+              controller: _pageController,
+              scrollDirection: Axis.vertical,
+              pageSnapping: true,
+              onPageChanged: (index) {
+                setState(() {
+                  _scrollOn();
+                });
+                if (index >= _sources.length - 1) {
                   setState(() {
-                    _scrollOn();
+                    _sources = shuffle(_sources);
+                    _pageController.jumpToPage(0);
                   });
-                  if (index >= _sources.length - 1){
-                    setState((){
-                      _sources = shuffle(_sources);
-                      _pageController.jumpToPage(0);
-                    });
-                  }
-                },
-                children: []..addAll(_sources.map((_source) {
+                }
+              },
+              children: []
+                ..addAll(_sources.map((_source) {
                   return YoutubePlayerScreen(
-                      source: _source, pageController: _pageController, user: _user, resetSources: resetSources);
+                      source: _source,
+                      pageController: _pageController,
+                      user: _user,
+                      resetSources: resetSources);
                 })))
-                : Stack(children: [
-              Positioned(
-                  top: MediaQuery.of(context).size.height * .02,
-                  child:
-                  Container(
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(child:
-                      Container(child: Image.asset('assets/images/justmusic_logo.png'),
-                          width: 140))
-                  )),
-              Center(
-                  child: Text(
-                      "Unknown Error:\n Please choose genre(s) and try again !",
-                      style: TextStyle(color: Colors.white)))
-            ]);
+              : Stack(children: [
+            Positioned(
+                top: MediaQuery
+                    .of(context)
+                    .size
+                    .height * .02,
+                child:
+                Container(
+                    width: MediaQuery
+                        .of(context)
+                        .size
+                        .width,
+                    child: Center(child:
+                    Container(
+                        child: Image.asset('assets/images/justmusic_logo.png'),
+                        width: 140))
+                )),
+            Center(
+                child: Text(
+                    "Unknown Error:\n Please choose genre(s) and try again !",
+                    style: TextStyle(color: Colors.white)))
+          ]);
 //      return SingleChildScrollView(child: Text(_currentUrl, style: TextStyle(color: Colors.white)));
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else {
-            return Center(
-                child: Column(children: <Widget>[
-                  Text('Error: ${snapshot.error}',
-                      style: TextStyle(fontSize: 14.0, color: Colors.white)),
-                  RaisedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text("Exit"),
-                      textColor: Colors.white,
-                      elevation: 7.0,
-                      color: Colors.blue)
-                ]));
-          }
-        });
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: Logo());
+        } else {
+          return Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text('Error: ${snapshot.error}',
+                        style: TextStyle(fontSize: 14.0, color: Colors.white)),
+                    RaisedButton(
+                        onPressed: () =>
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      AppScreen()),
+                            ),
+                        child: Text("Exit"),
+                        textColor: Colors.white,
+                        elevation: 7.0,
+                        color: Colors.transparent)
+                  ]));
+        }
+      } else {
+        return Container();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override

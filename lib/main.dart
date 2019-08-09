@@ -12,6 +12,7 @@ import './models/country.dart';
 import './utils/locationUtil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'global_components/api.dart';
+import 'global_components/singleton.dart';
 
 void main() {
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -32,9 +33,8 @@ class App extends StatelessWidget {
 }
 
 class AppScreen extends StatefulWidget {
-  final User user;
   final Widget navigatedPage;
-  AppScreen({Key key, this.user, this.navigatedPage})
+  AppScreen({Key key, this.navigatedPage})
       : super(key: key);
 
   @override
@@ -48,6 +48,7 @@ class _AppScreenState extends State<AppScreen> {
   FlutterSecureStorage _storage = FlutterSecureStorage();
   LocalStorage _localStorage = LocalStorage("countryContainer");
   User user;
+  Singleton _singleton = Singleton();
 
   void getSelectedPageFromChild(page) {
     setState(() {
@@ -59,28 +60,26 @@ class _AppScreenState extends State<AppScreen> {
   void initState() {
     super.initState();
     Api(); //create an Api instance to determine which host the app should use
-    if (widget.user == null) {
       _storage.read(key: "user").then((userJson) {
-        if (userJson != null && jsonDecode(userJson)["user"].isNotEmpty) {
-          UserApi.authenticateUser(
-                  jsonDecode(userJson)["user"]["contactInfo"]["phoneNumber"])
-              .then((isValidUser) {
-            if (isValidUser == true) {
-              this.user = User.fromJson(jsonDecode(userJson));
-              print("I am ${user.nickname} (from storage)");
-            } else {
-              _storage.delete(key: "user").catchError((error) {
-                print(error);
-              });
-            }
-          });
-        } else {
-          user = null;
+        if (userJson != null) {
+          var decodedUserJson = jsonDecode(userJson);
+          if (decodedUserJson.isNotEmpty) {
+            UserApi.authenticateUser(
+                decodedUserJson["contactInfo"]["phoneNumber"])
+                .then((isValidUser) {
+              if (isValidUser == true) {
+                this.user = User.fromJson(jsonDecode(userJson));
+                print("I am ${user.nickname} (from storage)");
+                _singleton.user = this.user;
+              } else {
+                _storage.delete(key: "user").catchError((error) {
+                  print(error);
+                });
+              }
+            });
+          }
         }
       });
-    } else {
-      user = widget.user;
-    }
 
     currentPage =
         widget.navigatedPage != null ? widget.navigatedPage : CategoryPage();
