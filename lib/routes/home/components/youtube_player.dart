@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -128,11 +129,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                               : MusicApi.perform(
                               "block", widget.user.id, source["_id"])
                               .then((j) {
-                            widget.resetSources();
                             setState(() {
                               _blocked = true;
                             });
+                            widget.resetSources();
                           });
+                          print("blocked: $_blocked");
                       }
                     });
                   }else {
@@ -263,6 +265,10 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                         _singleton.isFullScreen = true;
                       } else {
                         _singleton.isFullScreen = false;
+                        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+                      }
+                      if (_controller.value.playerState == PlayerState.UNKNOWN) {
+                        _controller.cue();
                       }
                       if (_controller.value.playerState == PlayerState.ENDED) {
                         _isRepeatOn == true

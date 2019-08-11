@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
   ScrollPhysics _pageViewScrollPhysics;
-  final _pageController = PageController(initialPage: 0);
+  final _pageController = PageController(initialPage: 0, keepPage: false);
   PageView pageView;
   List<dynamic> _sources = [];
   Future<List<dynamic>> _urlConverted;
@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
     _user = _singleton.user;
     _urlConverted = MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null);
     _urlConverted.then((musics) {
-      _sources = shuffle(musics);
+      _sources = musics;
     });
   }
 
@@ -67,10 +67,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
     });
   }
 
-  void resetSources() {
+  void resetSources() async{
+    await _sources.removeAt(_pageController.page.round());
+    _pageController.previousPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+    Future.delayed(Duration(milliseconds: 200), () => _pageController.nextPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut));
     setState(() {
-      _sources = shuffle(_sources);
-      _pageController.nextPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+      _sources = _sources;
     });
   }
 
@@ -88,13 +90,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
               scrollDirection: Axis.vertical,
               pageSnapping: true,
               onPageChanged: (index) {
-                setState(() {
-                  _scrollOn();
-                });
+//                setState(() {
+//                  _scrollOn();
+//                });
                 if (index >= _sources.length - 1) {
-                  setState(() {
-                    _sources = shuffle(_sources);
-                    _pageController.jumpToPage(0);
+                  MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null).then((musics){
+                    setState(() {
+                      _sources..addAll(musics);
+                    });
                   });
                 }
               },

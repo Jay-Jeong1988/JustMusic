@@ -82,46 +82,54 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
                 backgroundColor: Color.fromRGBO(20, 20, 25, 1),
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
-                  backgroundColor: Color.fromRGBO(20, 20, 25, 1),
+//                  backgroundColor: Color.fromRGBO(20, 20, 25, 1),
+                backgroundColor: Colors.transparent,
                   title: Center(
                               child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                Text("Choose genres you like",
+                                Text("Pick genres up to 10",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 18.0,
                                         fontWeight: FontWeight.bold)),
                                 _selectedCategories.isNotEmpty
-                                    ? RaisedButton(
+                                    ? Container(
+                                    margin: EdgeInsets.fromLTRB(0,7,0,7),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          stops: [0.4, 0.8, 1],
+                                          colors: [
+                                            Color.fromRGBO(25, 25, 30, 1),
+                                            Color.fromRGBO(45, 45, 50, 1),
+                                            Color.fromRGBO(85, 85, 90, 1),
+                                          ]),
+                                      border:
+                                      Border.all(color: Colors.white54, width: .7),
+                                      borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                                    ),
+                                    child: RaisedButton.icon(
+                                        elevation: 0,
+                                        textColor: Colors.red,
+                                        color: Colors.transparent,
                                         onPressed: () {
                                           Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (BuildContext
-                                                          context) =>
+                                                  context) =>
                                                       AppScreen(
                                                           navigatedPage: HomePage(
                                                               selectedCategories:
-                                                                  _selectedCategories))));
+                                                              _selectedCategories))));
                                           _singleton.clicked = 0;
                                         },
-                                        child: Stack(children: [
-                                          Center(child: Icon(Icons.play_arrow, color: Color.fromRGBO(252, 76, 78, 1),
-                                          size: 50,)),
-                                          Center(child: Container(
-                                            padding: EdgeInsets.only(left: 17)
-                                          ,child: Text("PLAY",
-                                              style: TextStyle(
-                                                fontSize: 7,
-                                                  fontWeight: FontWeight.w300
-                                              )))),
-                                        ]),
-                                        textColor: Colors.white,
-                                        elevation: 0,
-                                        color: Colors.transparent)
+                                        icon: Icon(Icons.play_circle_outline),
+                                        label: Text("PLAY",
+                                            style: TextStyle(color: Colors.white))))
                                     : Container()
                               ]))
                 ),
@@ -141,15 +149,19 @@ class CategoryPageState extends State<CategoryPage> with SingleTickerProviderSta
                                   ..addAll(_allCategories.map((category) {
                                     return GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            _selectedCategories
-                                                    .contains(category)
-                                                ? _selectedCategories
-                                                    .remove(category)
-                                                : _selectedCategories
-                                                    .add(category);
-                                          });
-                                        },
+                                            if (_selectedCategories.contains(category)) {
+                                              setState(() {
+                                                _selectedCategories.remove(category);
+                                              });
+                                            }else {
+                                              if (_selectedCategories.length < 10) {
+                                                setState(() {
+                                                  _selectedCategories.add(
+                                                      category);
+                                                });
+                                              }
+                                            }
+                                          },
                                         child: Stack(children: [
                                           Container(
                                             decoration: BoxDecoration(

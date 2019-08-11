@@ -148,9 +148,9 @@ class MusicApi {
     }
   }
 
-  static Future<List<dynamic>> getMyPosts(userId) async {
+  static Future<dynamic> getMyPosts(userId, lastIndex) async {
     var response;
-    String path = "/$_musicPath/myposts/$userId";
+    String path = "/$_musicPath/myposts/$userId/$lastIndex";
     var uri = Uri.http("${Api.host}:${Api.port}", path);
     try {
       response = await http.get(uri);
@@ -193,9 +193,9 @@ class MusicApi {
     }
   }
 
-  static Future<List<dynamic>> getVideosFor(likesOrBlocks, userId) async {
+  static Future<dynamic> getVideosFor(likesOrBlocks, userId, lastIndex) async {
     var response;
-    String path = "/$_musicPath/$likesOrBlocks/$userId";
+    String path = "/$_musicPath/$likesOrBlocks/$userId/$lastIndex";
     var uri = Uri.http("${Api.host}:${Api.port}", path);
     try {
       response = await http.get(uri);
