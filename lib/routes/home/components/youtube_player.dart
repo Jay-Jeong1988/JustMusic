@@ -20,7 +20,7 @@ class YoutubePlayerScreen extends StatefulWidget {
 }
 
 class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
-    with WidgetsBindingObserver {
+    {
   var _controller = YoutubePlayerController();
   dynamic source;
   bool _isRepeatOn = false;
@@ -34,7 +34,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     source = widget.source;
     alternative.add(widget.source["videoUrl"]);
     checkLikes();
@@ -43,7 +42,8 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    _controller.pause();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -132,7 +132,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                             setState(() {
                               _blocked = true;
                             });
-                            widget.resetSources();
+                            widget.resetSources(source["_id"]);
                           });
                           print("blocked: $_blocked");
                       }
@@ -261,6 +261,15 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                     _controller = controller;
                     _controller.cue();
                     _controller.addListener(() {
+                      if (_singleton.isAppStatePaused != "normal") {
+                        if (_singleton.isAppStatePaused == "paused")
+                          _controller.pause();
+                        else if (_singleton.isAppStatePaused == "resumed") {
+                          _controller.play();
+                          _singleton.isAppStatePaused = "normal";
+                        }
+                      }
+
                       if (_controller.value.isFullScreen) {
                         _singleton.isFullScreen = true;
                       } else {

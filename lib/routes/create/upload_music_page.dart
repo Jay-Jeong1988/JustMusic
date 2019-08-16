@@ -226,8 +226,15 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Color.fromRGBO(30, 30, 35, 1.0),
+    return Container(
+        decoration: BoxDecoration(gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Color.fromRGBO(27, 30, 48, 1),
+              Color.fromRGBO(53, 50, 61, 1),
+            ])),
+        child: Scaffold(
         appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 15.0,
@@ -364,6 +371,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
                       maxLines: 3,
                       padding: EdgeInsets.fromLTRB(25, 10, 25, 90),
                       onChangeMethod: _getComment),
-                ]))));
+                ])))));
   }
 }

@@ -161,7 +161,7 @@ class MusicApi {
     print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      print("Decoded response: $decodedResponse");
+//      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
       print(decodedResponse);
@@ -206,7 +206,7 @@ class MusicApi {
     print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      print("Decoded response: $decodedResponse");
+//      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
       print(decodedResponse);

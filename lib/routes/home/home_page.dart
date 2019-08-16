@@ -11,13 +11,13 @@ import 'package:flutter/material.dart';
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
-  final List<Category> selectedCategories;
+  final List<dynamic> selectedCategories;
   HomePage({Key key, this.selectedCategories});
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
+class _HomePageState extends State<HomePage> {
   ScrollPhysics _pageViewScrollPhysics;
   final _pageController = PageController(initialPage: 0, keepPage: false);
   PageView pageView;
@@ -30,10 +30,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     if (widget.selectedCategories != null) {
       _categoryTitles.addAll(widget.selectedCategories.map((category) {
-        return category.title;
+        return category['title'];
       }));
     }
     _user = _singleton.user;
@@ -59,16 +58,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
     return items;
   }
 
-  void _scrollOn() async {
-    _pageViewScrollPhysics = NeverScrollableScrollPhysics();
-    await Future.delayed(const Duration(milliseconds: 1000));
-    setState((){
-      _pageViewScrollPhysics = AlwaysScrollableScrollPhysics();
-    });
-  }
+//  void _scrollOn() async {
+//    _pageViewScrollPhysics = NeverScrollableScrollPhysics();
+//    await Future.delayed(const Duration(milliseconds: 1000));
+//    setState((){
+//      _pageViewScrollPhysics = AlwaysScrollableScrollPhysics();
+//    });
+//  }
 
-  void resetSources() async{
-    await _sources.removeAt(_pageController.page.round());
+  void resetSources(blockedMusicId) async{
+      _sources.removeWhere((source){
+        return source['_id'] == blockedMusicId;
+      });
     _pageController.previousPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
     Future.delayed(Duration(milliseconds: 200), () => _pageController.nextPage(duration: Duration(milliseconds: 100), curve: Curves.easeInOut));
     setState(() {
@@ -131,7 +132,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
                     "Unknown Error:\n Please choose genre(s) and try again !",
                     style: TextStyle(color: Colors.white)))
           ]);
-//      return SingleChildScrollView(child: Text(_currentUrl, style: TextStyle(color: Colors.white)));
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: Logo());
         } else {
@@ -163,7 +163,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver{
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

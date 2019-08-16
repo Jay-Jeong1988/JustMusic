@@ -26,8 +26,16 @@ class CategoriesPageState extends State<CategoriesPage> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromRGBO(43, 47, 57, 1.0),
+    return Container(
+          decoration: BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                Color.fromRGBO(27, 30, 48, 1),
+                Color.fromRGBO(53, 50, 61, 1),
+              ])),
+        child: Scaffold(
+//      backgroundColor: Color.fromRGBO(43, 47, 57, 1.0),
       appBar: AppBar(
         leading: _customBackButton(),
         elevation: 50,
@@ -55,6 +63,6 @@ class CategoriesPageState extends State<CategoriesPage> {
                   }
               );
             })
-      ));
+      )));
   }
 }

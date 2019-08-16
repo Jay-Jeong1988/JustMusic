@@ -6,6 +6,7 @@ class Singleton {
   bool isFullScreen = false;
   int clicked;
   User user;
+  String isAppStatePaused = "normal";
 
   factory Singleton() {
     return _singleton;

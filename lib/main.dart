@@ -4,7 +4,7 @@ import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './models/user.dart';
 import './routes/category/category_page.dart';
 import './global_components/navbar.dart';
@@ -41,14 +41,14 @@ class AppScreen extends StatefulWidget {
   _AppScreenState createState() => _AppScreenState();
 }
 
-class _AppScreenState extends State<AppScreen> {
+class _AppScreenState extends State<AppScreen> with WidgetsBindingObserver{
   Future<Country> countryFuture;
   Country userCountry;
   Widget currentPage;
   FlutterSecureStorage _storage = FlutterSecureStorage();
-  LocalStorage _localStorage = LocalStorage("countryContainer");
-  User user;
   Singleton _singleton = Singleton();
+  var loadCountryFromDisk;
+  bool _loadingCountryFromGPS = false;
 
   void getSelectedPageFromChild(page) {
     setState(() {
@@ -57,7 +57,24 @@ class _AppScreenState extends State<AppScreen> {
   }
 
   @override
+  Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused) {
+      setState((){ _singleton.isAppStatePaused = "paused"; });
+    }
+    else if(state == AppLifecycleState.resumed) {
+      setState((){ _singleton.isAppStatePaused = "resumed"; });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     Api(); //create an Api instance to determine which host the app should use
       _storage.read(key: "user").then((userJson) {
@@ -68,10 +85,10 @@ class _AppScreenState extends State<AppScreen> {
                 decodedUserJson["contactInfo"]["phoneNumber"])
                 .then((isValidUser) {
               if (isValidUser == true) {
-                this.user = User.fromJson(jsonDecode(userJson));
-                print("I am ${user.nickname} (from storage)");
-                _singleton.user = this.user;
+                _singleton.user = User.fromJson(jsonDecode(userJson));
+                print("I am ${_singleton.user.nickname} (from storage)");
               } else {
+                _singleton.user = null;
                 _storage.delete(key: "user").catchError((error) {
                   print(error);
                 });
@@ -81,15 +98,37 @@ class _AppScreenState extends State<AppScreen> {
         }
       });
 
-    currentPage =
-        widget.navigatedPage != null ? widget.navigatedPage : CategoryPage();
-    countryFuture = getCountryInstance();
-    countryFuture.then((country) {
-      if (country != null) {
-        _localStorage.setItem("country", Country.toJson(country));
-        userCountry = country;
+    currentPage = widget.navigatedPage ?? CategoryPage();
+
+    loadCountryFromDisk = _loadCountryFromDisk();
+    loadCountryFromDisk.then((countryFromDisk){
+      if (countryFromDisk != null) {
+        userCountry = Country.fromJson(jsonDecode(countryFromDisk));
+      }
+      else {
+        setState((){
+          _loadingCountryFromGPS = true;
+        });
+        countryFuture = getCountryInstance();
+        countryFuture.then((country) {
+          if (country != null) {
+            _setCountryToDisk(Country.toJson(country));
+            userCountry = country;
+          }
+        });
       }
     });
+  }
+
+  Future<String> _loadCountryFromDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var country = prefs.getString('country');
+    return country;
+  }
+
+  Future<void> _setCountryToDisk(country) async {
+    SharedPreferences prefs =  await SharedPreferences.getInstance();
+    prefs.setString("country", country);
   }
 
   DateTime currentBackPressTime;
@@ -112,7 +151,7 @@ class _AppScreenState extends State<AppScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: countryFuture,
+        future: _loadingCountryFromGPS ? countryFuture : loadCountryFromDisk,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return WillPopScope(
@@ -122,11 +161,9 @@ class _AppScreenState extends State<AppScreen> {
               currentPage,
               widget.navigatedPage != null
                   ? NavBar(
-                      user: user,
                       getSelectedPageFromChild: getSelectedPageFromChild,
                       currentPage: widget.navigatedPage)
                   : NavBar(
-                      user: user,
                       getSelectedPageFromChild: getSelectedPageFromChild),
             ])));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
@@ -148,7 +185,11 @@ class _AppScreenState extends State<AppScreen> {
                   color: Colors.blue)
             ]));
           } else {
-            return Center();
+            return Center(child: Text("${snapshot.connectionState}",
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white
+            )));
           }
         });
   }

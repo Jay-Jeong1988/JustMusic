@@ -1,12 +1,13 @@
 import 'package:JustMusic/global_components/AK.dart';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/create/upload_music_page.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../main.dart';
 import './country_code_widget.dart';
@@ -24,16 +25,16 @@ class _PhoneAuthState extends State<PhoneAuth> {
   Country _selectedCountry;
   TextEditingController _controller = new TextEditingController();
   final _storage = FlutterSecureStorage();
-  LocalStorage _localStorage = LocalStorage('countryContainer');
-  Future<String> _getCountryFromStorage;
+  var loadCountryFromDisk;
+  Future<dynamic> _getCountryFromStorage;
   Singleton _singleton = Singleton();
 
   @override
   void initState() {
-    _getCountryFromStorage = _getCountryFromLocalStorage();
-    _getCountryFromStorage.then((countryJson){
-      if (countryJson != null) {
-        _selectedCountry = Country.fromJson(jsonDecode(countryJson));
+    _getCountryFromStorage = _loadCountryFromDisk();
+    _getCountryFromStorage.then((country){
+      if (country != null) {
+        _selectedCountry = Country.fromJson(jsonDecode(country));
         print("selected country: ${_selectedCountry.name}");
       }
     });
@@ -46,8 +47,9 @@ class _PhoneAuthState extends State<PhoneAuth> {
     });
   }
 
-  Future<String> _getCountryFromLocalStorage() async{
-    var country = await _localStorage.getItem("country");
+  _loadCountryFromDisk() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var country = prefs.getString('country');
     return country;
   }
 
@@ -72,13 +74,13 @@ class _PhoneAuthState extends State<PhoneAuth> {
         (AuthCredential credential) async {
       print('auto verified and signed in user: $credential');
       print('phone number: $phoneNo');
-      final FirebaseUser user =
+      final AuthResult authResult =
           await FirebaseAuth.instance.signInWithCredential(credential);
       final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
 //    final token = await user.getIdToken();
-          assert(user.uid == currentUser.uid);
-          print('signed into firebase: $user');
-      saveUserRequest(user);
+          assert(authResult.user.uid == currentUser.uid);
+          print('signed into firebase: ${authResult.user}');
+      saveUserRequest(authResult.user);
     };
 
     final PhoneVerificationFailed verificationFailed =
@@ -134,14 +136,14 @@ class _PhoneAuthState extends State<PhoneAuth> {
       verificationId: this.verificationId,
       smsCode: smsCode,
     );
-    final FirebaseUser user =
+    final AuthResult authResult =
         await FirebaseAuth.instance.signInWithCredential(credential);
     final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
 //    final token = await user.getIdToken();
-    assert(user.uid == currentUser.uid);
-    print('signed into firebase: $user');
+    assert(authResult.user.uid == currentUser.uid);
+    print('signed into firebase: ${authResult.user}');
 
-    saveUserRequest(user);
+    saveUserRequest(authResult.user);
 //    print('token: $token');
   }
 
@@ -156,6 +158,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
         }).catchError((error){
           print(error);
         });
+        _singleton.user = User.fromJson(decodedResponse);
         Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) => AppScreen(navigatedPage:
               _singleton.clicked == 4 ? ProfilePage() : UploadMusicPage()

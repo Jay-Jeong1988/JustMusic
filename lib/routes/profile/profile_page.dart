@@ -1,8 +1,11 @@
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
-import 'package:JustMusic/routes/home/home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../main.dart';
 
@@ -31,10 +34,18 @@ class ProfilePageState extends State<ProfilePage>
   int _myLikesTotalCountInDB = 0;
   int _myBlocksTotalCountInDB = 0;
   ScrollController _listViewScrollController;
+  var _controller = YoutubePlayerController();
+  bool _musicActivated = false;
+  List<dynamic> _currentlySelectedPlayList = [];
+  int _currentlyPlayingIndex = 0;
+  bool _isPaused = false;
+  bool _isRepeatOn = false;
+  bool _isRepeatAllOn = false;
 
   void initState() {
     super.initState();
-    _listViewScrollController = new ScrollController()..addListener(_scrollListener);
+    _listViewScrollController = new ScrollController()
+      ..addListener(_scrollListener);
 
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0)
       ..addListener(() {
@@ -44,8 +55,9 @@ class ProfilePageState extends State<ProfilePage>
               _fetchMyPosts.then((res) {
                 setState(() {
                   _myPosts..addAll(res["posts"]);
-                  _myPostsLastIndex+=10;
-                  if (res["count"] != null) _myPostsTotalCountInDB=res['count'];
+                  _myPostsLastIndex += 10;
+                  if (res["count"] != null)
+                    _myPostsTotalCountInDB = res['count'];
                 });
               });
             }
@@ -56,18 +68,21 @@ class ProfilePageState extends State<ProfilePage>
                 setState(() {
                   _myLikes..addAll(res['posts']);
                   _myLikesLastIndex += 10;
-                  if (res["count"] != null) _myLikesTotalCountInDB=res['count'];
+                  if (res["count"] != null)
+                    _myLikesTotalCountInDB = res['count'];
                 });
               });
             }
             break;
           case 2:
             if (_myBlocks.isEmpty) {
-              MusicApi.getVideosFor('blocks', _user.id, _myBlocksLastIndex).then((res) {
+              MusicApi.getVideosFor('blocks', _user.id, _myBlocksLastIndex)
+                  .then((res) {
                 setState(() {
                   _myBlocks..addAll(res['posts']);
                   _myBlocksLastIndex += 10;
-                  if (res["count"] != null) _myBlocksTotalCountInDB=res['count'];
+                  if (res["count"] != null)
+                    _myBlocksTotalCountInDB = res['count'];
                 });
               });
             }
@@ -79,8 +94,10 @@ class ProfilePageState extends State<ProfilePage>
     _user = _singleton.user;
     if (_user != null) {
       _fetchMyPosts = MusicApi.getMyPosts(_user.id, _myPostsLastIndex);
-      _fetchLikedMusic = MusicApi.getVideosFor("likes", _user.id, _myLikesLastIndex);
-      _fetchBlockedMusic = MusicApi.getVideosFor("blocks", _user.id, _myBlocksLastIndex);
+      _fetchLikedMusic =
+          MusicApi.getVideosFor("likes", _user.id, _myLikesLastIndex);
+      _fetchBlockedMusic =
+          MusicApi.getVideosFor("blocks", _user.id, _myBlocksLastIndex);
 
       _fetchMyPosts.then((res) {
         for (var post in res["posts"]) {
@@ -110,8 +127,8 @@ class ProfilePageState extends State<ProfilePage>
                   MusicApi.getVideosFor("blocks", _user.id, 0).then((result) {
                     setState(() {
                       _myBlocks = result["posts"];
-                      _myBlocksLastIndex=10;
-                      _myBlocksTotalCountInDB-=1;
+                      _myBlocksLastIndex = 10;
+                      _myBlocksTotalCountInDB -= 1;
                     });
                   });
                   Navigator.of(context).pop();
@@ -139,15 +156,18 @@ class ProfilePageState extends State<ProfilePage>
             _myPostsLastIndex += 10;
           });
         });
-      }else if (_currentTabIndex == 1 && _myLikes.length < _myLikesTotalCountInDB) {
+      } else if (_currentTabIndex == 1 &&
+          _myLikes.length < _myLikesTotalCountInDB) {
         MusicApi.getVideosFor('likes', _user.id, _myLikesLastIndex).then((res) {
           setState(() {
             _myLikes.addAll(res["posts"]);
             _myLikesLastIndex += 10;
           });
         });
-      }else if (_currentTabIndex == 2 && _myBlocks.length < _myBlocksTotalCountInDB) {
-        MusicApi.getVideosFor('blocks', _user.id, _myBlocksLastIndex).then((res) {
+      } else if (_currentTabIndex == 2 &&
+          _myBlocks.length < _myBlocksTotalCountInDB) {
+        MusicApi.getVideosFor('blocks', _user.id, _myBlocksLastIndex)
+            .then((res) {
           setState(() {
             _myBlocks.addAll(res["posts"]);
             _myBlocksLastIndex += 10;
@@ -165,24 +185,24 @@ class ProfilePageState extends State<ProfilePage>
     };
     var items = sources[type];
     return Container(
-      width: MediaQuery.of(context).size.width,
+        width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height * 0.42,
         padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Stack(children: [
           Container(
               decoration: BoxDecoration(color: Colors.transparent),
               child: ListView.builder(
-                controller: _listViewScrollController,
-                itemCount: sources[type].length,
+                  controller: _listViewScrollController,
+                  itemCount: sources[type].length,
                   padding: EdgeInsets.only(top: 20, bottom: 50),
-                  itemBuilder: (context, index){
+                  itemBuilder: (context, index) {
                     return Container(
                         height: 90,
                         padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
                         child: Row(children: [
                           ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  maxWidth: 113, maxHeight: 70),
+                              constraints:
+                                  BoxConstraints(maxWidth: 113, maxHeight: 70),
                               child: Container(
                                 decoration: BoxDecoration(
                                     border: Border.all(
@@ -192,42 +212,38 @@ class ProfilePageState extends State<ProfilePage>
                                 child: Stack(children: [
                                   items[index]['thumbnailUrl'] != null
                                       ? Center(
-                                      child: Image.network(
-                                          items[index]['thumbnailUrl']))
+                                          child: Image.network(
+                                              items[index]['thumbnailUrl']))
                                       : Center(
-                                      child: Image.network(
-                                          "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg")),
+                                          child: Image.network(
+                                              "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg")),
                                   type == "myPosts"
                                       ? Positioned(
-                                      top: 0,
-                                      left: 2,
-                                      child: Container(
-                                          child: Stack(children: [
+                                          top: 0,
+                                          left: 2,
+                                          child: Container(
+                                              child: Stack(children: [
                                             Center(
                                                 child: Text(
                                                     "${items[index]['likesCount']}",
                                                     style: TextStyle(
                                                         fontFamily:
-                                                        "BalooChettan",
+                                                            "BalooChettan",
                                                         fontWeight:
-                                                        FontWeight.normal,
+                                                            FontWeight.normal,
                                                         color: Color.fromRGBO(
-                                                            220,
-                                                            100,
-                                                            128,
-                                                            1))))
+                                                            220, 100, 128, 1))))
                                           ])))
                                       : type == "myBlocks"
-                                      ? Center(
-                                      child: IconButton(
-                                          icon: Icon(Icons.block),
-                                          color: Color.fromRGBO(
-                                              255, 0, 0, 1),
-                                          iconSize: 50,
-                                          onPressed: () =>
-                                              _showDialog(
-                                                  items[index]["_id"])))
-                                      : Container()
+                                          ? Center(
+                                              child: IconButton(
+                                                  icon: Icon(Icons.block),
+                                                  color: Color.fromRGBO(
+                                                      255, 0, 0, 1),
+                                                  iconSize: 50,
+                                                  onPressed: () => _showDialog(
+                                                      items[index]["_id"])))
+                                          : Container()
                                 ]),
                               )),
                           Flexible(
@@ -238,6 +254,12 @@ class ProfilePageState extends State<ProfilePage>
                                         onTap: () {
                                           if (type == "myBlocks")
                                             _showDialog(items[index]["_id"]);
+                                          else
+                                            setState(() {
+                                              _currentlySelectedPlayList = items;
+                                              _currentlyPlayingIndex = index;
+                                              _musicActivated = true;
+                                            });
                                         },
                                         child: Text("${items[index]["title"]}",
                                             style: TextStyle(
@@ -248,90 +270,320 @@ class ProfilePageState extends State<ProfilePage>
         ]));
   }
 
-  void _playBtnPressed () {
-    Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (BuildContext
-            context) =>
-                AppScreen(
-                    navigatedPage: HomePage(
-                       ))));
-    _singleton.clicked = 0;
+  void _signOut() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: new Text("Are you sure you want to sign out?",
+              style: TextStyle(fontSize: 18)),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("Yes", style: TextStyle(fontSize: 20)),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                FlutterSecureStorage().deleteAll();
+                _singleton.user = null;
+                _singleton.clicked = 1;
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => AppScreen()),
+                    (_) => false);
+              },
+            ),
+            new FlatButton(
+              child: new Text("No", style: TextStyle(fontSize: 20)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget floatingYoutubeScreen = Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.width * .56,
+        child: Stack(children: [
+          YoutubePlayer(
+            context: context,
+            videoId: YoutubePlayer.convertUrlToId(
+                _currentlySelectedPlayList.isNotEmpty && _currentlySelectedPlayList[_currentlyPlayingIndex] != null
+                    ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
+                    : "https://youtu.be/HoXNpjUOx4U"),
+            flags: YoutubePlayerFlags(
+              disableDragSeek: true,
+              autoPlay: true,
+              mute: false,
+              showVideoProgressIndicator: true,
+            ),
+            videoProgressIndicatorColor: Colors.amber,
+            progressColors: ProgressColors(
+              playedColor: Colors.amber,
+              handleColor: Colors.amberAccent,
+            ),
+            onPlayerInitialized: (controller) {
+              _controller = controller;
+              _controller.cue();
+              _controller.addListener(() {
+                if (_controller.value.isFullScreen) {
+                  _singleton.isFullScreen = true;
+                  SystemChrome.setPreferredOrientations(
+                      [DeviceOrientation.landscapeLeft]);
+                } else {
+                  _singleton.isFullScreen = false;
+                  SystemChrome.setPreferredOrientations(
+                      [DeviceOrientation.portraitUp]);
+                }
+                if (_controller.value.playerState == PlayerState.PAUSED) {
+                  setState((){
+                    _isPaused = true;
+                  });
+                }
+                if (_controller.value.playerState == PlayerState.PLAYING) {
+                  setState((){
+                    _isPaused = false;
+                  });
+                }
+                if (_controller.value.playerState == PlayerState.UNKNOWN) {
+                  _controller.cue();
+                }
+                if (_controller.value.playerState == PlayerState.ENDED) {
+                  _isRepeatOn ?
+                  _controller.cue() : _currentlyPlayingIndex < _currentlySelectedPlayList.length - 1 ?
+                  setState(() { _currentlyPlayingIndex += 1; }) : _isRepeatAllOn ?
+                  setState(() { _currentlyPlayingIndex = 0; }) : _controller.pause();
+                }
+                if (_controller.value.playerState == PlayerState.CUED) {
+                  _controller.play();
+                }
+                if (_controller.value.hasError) {
+                  print("Error: ${_controller.value.errorCode}");
+                  if(_controller.value.errorCode == 150) {
+                    setState(() {
+                      _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl'] =
+                      "https://youtu.be/HoXNpjUOx4U";
+                    });
+                  }
+                }
+              });
+            },
+          ),
+          _isPaused ? Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.width * .56,
+            foregroundDecoration: _isPaused ? BoxDecoration(
+                color: Colors.black45
+            ) : BoxDecoration(),
+          ) : Container(),
+          _isPaused ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+              left: MediaQuery.of(context).size.width * .5 - 90,
+              child: Container(
+                  width: 60,
+                  height: 60,
+                  child: FlatButton(
+                    padding: EdgeInsets.all(0),
+                    textColor: Color.fromRGBO(255, 255, 255, 1),
+                    child: Icon(Icons.photo_size_select_large, size: 50),
+                    color: Colors.transparent,
+                    onPressed: () {
+
+                    },
+                  ))) : Container(),
+          _isPaused ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+              left: MediaQuery.of(context).size.width * .5 - 30,
+              child: Container(
+                  width: 60,
+                  height: 60,
+                  child: FlatButton(
+                    padding: EdgeInsets.all(0),
+                    textColor: Color.fromRGBO(255, 255, 255, 1),
+                    child: Icon(Icons.play_arrow, size: 60),
+                    color: Colors.transparent,
+                    onPressed: () {
+                      _controller.play();
+                    },
+                  ))) : Container(),
+          _isPaused ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+              left: MediaQuery.of(context).size.width * .5 + 30,
+              child: Container(
+                  width: 60,
+                  height: 60,
+                  child: FlatButton(
+                    padding: EdgeInsets.all(0),
+                    textColor: Color.fromRGBO(255, 255, 255, 1),
+                    child: Icon(Icons.repeat_one, size: 50),
+                    color: Colors.transparent,
+                    onPressed: () {
+                      setState((){
+                        _isRepeatOn = !_isRepeatOn;
+                      });
+                    },
+                  ))) : Container(),
+          _isPaused ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+              left: MediaQuery.of(context).size.width * .5 + 90,
+              child: Container(
+                  width: 60,
+                  height: 60,
+                  child: FlatButton(
+                    padding: EdgeInsets.all(0),
+                    textColor: Color.fromRGBO(255, 255, 255, 1),
+                    child: Icon(Icons.repeat, size: 50),
+                    color: Colors.transparent,
+                    onPressed: () {
+                      setState((){
+                        _isRepeatAllOn = !_isRepeatAllOn;
+                      });
+                    },
+                  ))) : Container(),
+          _isRepeatOn ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .1,
+              right: 30,
+              child: Container(
+                  child: Container(child: Icon(Icons.repeat_one, size: 20, color: Colors.white),
+                  ))) : Container(),
+          _isRepeatAllOn ? Positioned(
+              top: MediaQuery.of(context).size.width * .56 * .1,
+              right: 10,
+              child: Container(
+                  child: Container(child: Icon(Icons.repeat, size: 20, color: Colors.white),
+                  ))) : Container(),
+        ]));
     return FutureBuilder(
         future: _fetchMyPosts,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Scaffold(
-                backgroundColor: Color.fromRGBO(20, 20, 25, 1),
-                body: Column(children: [
-                  Stack(children: [
-                    Column(children: [
-                      Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * .2,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      "assets/images/default_appbar_image.jpg"),
-                                  fit: BoxFit.cover))),
-                      Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.30,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                stops: [
-                                  0,
-                                  1
-                                ],
-                                colors: [
-                                  Color.fromRGBO(20, 20, 30, .6),
-                                  Color.fromRGBO(60, 60, 70, .7),
-                                ]),
-                          ),
-                          child: Column(
+                backgroundColor: Color.fromRGBO(27, 25, 35, .8),
+                body: Stack(children: [
+                  Column(children: [
+                    _musicActivated
+                        ? floatingYoutubeScreen
+                        : Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.width * .56,
+                            decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: NetworkImage(
+                                        "https://ik.imagekit.io/kitkitkitit/tr:q-100,ar-16-9,w-400/default_bg.jpg"),
+                                    fit: BoxFit.cover))),
+                    Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height * 0.255,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color.fromRGBO(22, 25, 32, 1),
+                                Color.fromRGBO(40, 37, 56, 1),
+                              ]),
+                        ),
+                        child: Stack(children: [
+                          Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Container(
-                                    margin: EdgeInsets.only(top: 50),
-                                    child: Text(
-                                        _user != null ? _user.nickname : "",
-                                        style: TextStyle(
-                                            fontFamily: "NotoSans",
-                                            fontSize: 18,
-                                            color: Colors.white))),
-                                Container(
-                                    child: Text(
-                                        _user != null
-                                            ? "${_user.followers} Followers"
-                                            : "?",
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            fontFamily: "NotoSans",
-                                            color: Colors.white))),
-                                Container(
+                                    height: MediaQuery.of(context).size.height *
+                                            0.255 -
+                                        60,
                                     child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                      Text("$totalLikes Likes ",
-                                          style: TextStyle(
-                                              fontSize: 13,
-                                              fontFamily: "BalooChettan",
-                                              color: Color.fromRGBO(
-                                                  220, 100, 128, 1))),
-                                      Text("on my posts",
-                                          style: TextStyle(
-                                              fontSize: 13,
-                                              fontFamily: "NotoSans",
-                                              color: Colors.white))
-                                    ])),
+                                          Container(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  .4,
+                                              child: Center(
+                                                  child: Container(
+                                                      width: MediaQuery.of(context)
+                                                              .size
+                                                              .height *
+                                                          .14,
+                                                      height: MediaQuery.of(context)
+                                                              .size
+                                                              .height *
+                                                          .14,
+                                                      decoration: BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: Color.fromRGBO(
+                                                              70, 70, 80, 1)),
+                                                      child: IconButton(
+                                                          icon: Icon(Icons.photo_camera, color: Colors.white70),
+                                                          iconSize: 35,
+                                                          onPressed: null)))),
+                                          Container(
+                                              child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                Container(
+                                                    child: Text(
+                                                        _user != null
+                                                            ? _user.nickname
+                                                            : "",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "NotoSans",
+                                                            fontSize: 18,
+                                                            color:
+                                                                Colors.white))),
+                                                Container(
+                                                    child: Text(
+                                                        _user != null
+                                                            ? "${_user.followers} Followers"
+                                                            : "?",
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            fontFamily:
+                                                                "NotoSans",
+                                                            color:
+                                                                Colors.white))),
+                                                Container(
+                                                    child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                      Text("$totalLikes Likes ",
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              fontFamily:
+                                                                  "BalooChettan",
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      220,
+                                                                      100,
+                                                                      128,
+                                                                      1))),
+                                                      Text("on my posts",
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              fontFamily:
+                                                                  "NotoSans",
+                                                              color:
+                                                                  Colors.white))
+                                                    ]))
+                                              ])),
+                                        ])),
                                 Container(
-                                    margin: EdgeInsets.only(top: 5),
                                     height: 50,
                                     child: TabBar(
                                       controller: _tabController,
@@ -346,7 +598,8 @@ class ProfilePageState extends State<ProfilePage>
                                                 children: [
                                               Text("My Posts "),
                                               _currentTabIndex == 0
-                                                  ? Text("$_myPostsTotalCountInDB",
+                                                  ? Text(
+                                                      "$_myPostsTotalCountInDB",
                                                       style: TextStyle(
                                                           color: Color.fromRGBO(
                                                               247, 221, 68, 1)))
@@ -359,7 +612,8 @@ class ProfilePageState extends State<ProfilePage>
                                                 children: [
                                               Text("My Likes "),
                                               _currentTabIndex == 1
-                                                  ? Text("$_myLikesTotalCountInDB",
+                                                  ? Text(
+                                                      "$_myLikesTotalCountInDB",
                                                       style: TextStyle(
                                                           color: Color.fromRGBO(
                                                               247, 221, 68, 1)))
@@ -372,7 +626,8 @@ class ProfilePageState extends State<ProfilePage>
                                                 children: [
                                               Text("Blocked "),
                                               _currentTabIndex == 2
-                                                  ? Text("$_myBlocksTotalCountInDB",
+                                                  ? Text(
+                                                      "$_myBlocksTotalCountInDB",
                                                       style: TextStyle(
                                                           color: Color.fromRGBO(
                                                               247, 221, 68, 1)))
@@ -380,79 +635,83 @@ class ProfilePageState extends State<ProfilePage>
                                             ])),
                                       ],
                                     )),
-                              ])),
-                    ]),
-                    Positioned(
-                        top: MediaQuery.of(context).size.height * .2 - MediaQuery.of(context).size.height * .15 * .33,
-                        left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.height * .15 * .5,
-                        child: Container(
-                            width: MediaQuery.of(context).size.height * .15 ,
-                            height: MediaQuery.of(context).size.height * .15,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color.fromRGBO(70, 70, 80, 1)),
-                            child: IconButton(
-                                icon: Icon(Icons.photo_camera,
-                                    color: Colors.white70),
-                                iconSize: 35,
-                                onPressed: null))),
+                              ]),
+                          Positioned(
+                              top: 0,
+                              right: 0,
+                              child: RaisedButton.icon(
+                                elevation: 0,
+                                textColor: Color.fromRGBO(255, 255, 255, .8),
+                                label: Text("Sign out",
+                                    style: TextStyle(fontSize: 12)),
+                                icon: Icon(Icons.exit_to_app, size: 16),
+                                color: Colors.transparent,
+                                onPressed: () {
+                                  _signOut();
+                                },
+                              ))
+                        ])),
+                    Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height * 0.45,
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            FutureBuilder(
+                                future: _fetchMyPosts,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return _tabView("myPosts");
+                                  } else if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else {
+                                    return Center(
+                                        child: Text("Error fetching data"));
+                                  }
+                                }),
+                            FutureBuilder(
+                                future: _fetchLikedMusic,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return _tabView("myLikes");
+                                  } else if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else {
+                                    return Center(
+                                        child: Text("Error fetching data"));
+                                  }
+                                }),
+                            FutureBuilder(
+                                future: _fetchBlockedMusic,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    return _tabView("myBlocks");
+                                  } else if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else {
+                                    return Center(
+                                        child: Text("Error fetching data"));
+                                  }
+                                })
+                          ],
+                        ))
                   ]),
-                  Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          FutureBuilder(
-                              future: _fetchMyPosts,
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  return _tabView("myPosts");
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
-                                } else {
-                                  return Center(
-                                      child: Text("Error fetching data"));
-                                }
-                              }),
-                          FutureBuilder(
-                              future: _fetchLikedMusic,
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  return _tabView("myLikes");
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
-                                } else {
-                                  return Center(
-                                      child: Text("Error fetching data"));
-                                }
-                              }),
-                          FutureBuilder(
-                              future: _fetchBlockedMusic,
-                              builder: (BuildContext context,
-                                  AsyncSnapshot snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  return _tabView("myBlocks");
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
-                                } else {
-                                  return Center(
-                                      child: Text("Error fetching data"));
-                                }
-                              })
-                        ],
-                      ))
+//                  Center(child: Draggable(
+//                    childWhenDragging: Container(),
+//                      feedback: floatingYoutubeScreen,
+//                      child: floatingYoutubeScreen))
                 ]));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -469,7 +728,9 @@ class ProfilePageState extends State<ProfilePage>
                   color: Colors.blue)
             ]));
           } else {
-            return Center();
+            return Center(
+                child: Text("${snapshot.connectionState}",
+                    style: TextStyle(color: Colors.white, fontSize: 10)));
           }
         });
   }

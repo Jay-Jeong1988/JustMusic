@@ -1,4 +1,6 @@
 import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/models/user.dart';
+import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:flutter/material.dart';
 import '../global_components/modal_bottom_sheet.dart';
 import '../routes/home/home_page.dart';
@@ -7,11 +9,10 @@ import '../routes/category/category_page.dart';
 import '../routes/create/upload_music_page.dart';
 
 class NavBar extends StatefulWidget {
-  final user;
   final currentPage;
   final Function getSelectedPageFromChild;
 
-  NavBar({this.user, this.getSelectedPageFromChild, this.currentPage});
+  NavBar({this.getSelectedPageFromChild, this.currentPage});
 
   @override
   _NavBarState createState() => _NavBarState();
@@ -26,7 +27,7 @@ class _NavBarState extends State<NavBar> {
     ),
     CategoryPage(),
     UploadMusicPage(),
-    Center(child: Text("Still in construction :)", style: TextStyle(color: Colors.white, fontSize: 20, fontFamily: "Noto Sans"))),
+    PlayListsPage(),
     ProfilePage(),
   ];
 
@@ -54,8 +55,7 @@ class _NavBarState extends State<NavBar> {
                     : Color.fromRGBO(190, 190, 190, 1),
                 size: 30.0)),
         onPressed: () {
-//          _animationController.forward();
-          if ((index == 4 || index == 2) && widget.user == null) {
+          if ((index == 4 || index == 2) && _singleton.user == null) {
             setModalBottomSheet(context);
             _singleton.clicked = index == 4 ? 4 : 2;
           } else {
@@ -69,7 +69,8 @@ class _NavBarState extends State<NavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return _singleton.isFullScreen ? Container() : Positioned(
+    return
+      _singleton.isFullScreen ? Container() : Positioned(
         bottom: 0,
         child: BottomAppBar(
             elevation: 0,
@@ -92,7 +93,7 @@ class _NavBarState extends State<NavBar> {
                   navButton(Icons.play_arrow, 0),
                   navButton(Icons.grid_on, 1),
                   navButton(Icons.add_box, 2),
-                  navButton(Icons.device_unknown, 3),
+                  navButton(Icons.subscriptions, 3),
                   navButton(Icons.person, 4)
                 ],
               ),
