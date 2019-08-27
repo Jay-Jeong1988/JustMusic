@@ -63,10 +63,12 @@ class EmptyShadowAppBar extends StatelessWidget {
 }
 
 class EmptyShadowGrid extends StatelessWidget {
+  var height;
+  EmptyShadowGrid({this.height});
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: MediaQuery.of(context).size.height,
+        height: height ?? MediaQuery.of(context).size.height,
         decoration: BoxDecoration(boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(30, 30, 30, 0.8),

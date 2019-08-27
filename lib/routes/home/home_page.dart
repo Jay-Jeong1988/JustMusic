@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
-import 'package:JustMusic/models/category.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:JustMusic/utils/logo.dart';
@@ -12,7 +11,8 @@ import '../../main.dart';
 
 class HomePage extends StatefulWidget {
   final List<dynamic> selectedCategories;
-  HomePage({Key key, this.selectedCategories});
+  final List<dynamic> inheritedSources;
+  HomePage({Key key, this.selectedCategories, this.inheritedSources});
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   List<String> _categoryTitles = [];
   User _user;
   Singleton _singleton = Singleton();
+  bool _inheritedFromPlayList = false;
 
   @override
   void initState() {
@@ -37,8 +38,9 @@ class _HomePageState extends State<HomePage> {
     }
     _user = _singleton.user;
     _urlConverted = MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null);
+    if(widget.inheritedSources != null) setState((){_inheritedFromPlayList = true;});
     _urlConverted.then((musics) {
-      _sources = musics;
+      _sources = widget.inheritedSources ?? musics;
     });
   }
 
@@ -94,7 +96,7 @@ class _HomePageState extends State<HomePage> {
 //                setState(() {
 //                  _scrollOn();
 //                });
-                if (index >= _sources.length - 1) {
+                if (index >= _sources.length - 1 && !_inheritedFromPlayList) {
                   MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null).then((musics){
                     setState(() {
                       _sources..addAll(musics);
@@ -129,7 +131,7 @@ class _HomePageState extends State<HomePage> {
                 )),
             Center(
                 child: Text(
-                    "Unknown Error:\n Please choose genre(s) and try again !",
+                    "Found an empty play list.\nPlease choose genre(s) or another play list\nand try again !",
                     style: TextStyle(color: Colors.white)))
           ]);
         } else if (snapshot.connectionState == ConnectionState.waiting) {

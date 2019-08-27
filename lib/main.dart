@@ -41,7 +41,7 @@ class AppScreen extends StatefulWidget {
   _AppScreenState createState() => _AppScreenState();
 }
 
-class _AppScreenState extends State<AppScreen> with WidgetsBindingObserver{
+class _AppScreenState extends State<AppScreen> {
   Future<Country> countryFuture;
   Country userCountry;
   Widget currentPage;
@@ -56,25 +56,14 @@ class _AppScreenState extends State<AppScreen> with WidgetsBindingObserver{
     });
   }
 
-  @override
-  Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
-    if (state == AppLifecycleState.paused) {
-      setState((){ _singleton.isAppStatePaused = "paused"; });
-    }
-    else if(state == AppLifecycleState.resumed) {
-      setState((){ _singleton.isAppStatePaused = "resumed"; });
-    }
-  }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
     Api(); //create an Api instance to determine which host the app should use
       _storage.read(key: "user").then((userJson) {
@@ -134,18 +123,23 @@ class _AppScreenState extends State<AppScreen> with WidgetsBindingObserver{
   DateTime currentBackPressTime;
 
   Future<bool> _onWillPop() async{
-    DateTime now = DateTime.now();
-    if (currentBackPressTime == null ||
-        now.difference(currentBackPressTime) > Duration(seconds: 3)) {
-      currentBackPressTime = now;
-      Fluttertoast.showToast(
-          msg: "Tap agin to exit",
-          gravity: ToastGravity.CENTER,
-          backgroundColor: Color.fromRGBO(0, 0, 0, 0.5)
-      );
-      return Future.value(false);
+    if (_singleton.widgetLayers == 1) {
+      DateTime now = DateTime.now();
+      if (currentBackPressTime == null ||
+          now.difference(currentBackPressTime) > Duration(seconds: 3)) {
+        currentBackPressTime = now;
+        Fluttertoast.showToast(
+            msg: "Tap agin to exit",
+            gravity: ToastGravity.CENTER,
+            backgroundColor: Color.fromRGBO(0, 0, 0, 0.5)
+        );
+        return Future.value(false);
+      }
+      return Future.value(true);
+    }else {
+      _singleton.widgetLayers-=1;
+      return Future.value(true);
     }
-    return Future.value(true);
   }
 
   @override

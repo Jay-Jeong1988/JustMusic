@@ -19,7 +19,7 @@ class YoutubePlayerScreen extends StatefulWidget {
   State<YoutubePlayerScreen> createState() => _YoutubePlayerScreenState();
 }
 
-class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
+class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsBindingObserver
     {
   var _controller = YoutubePlayerController();
   dynamic source;
@@ -32,7 +32,18 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
   DateTime _currentUtilBtnTappedTime;
 
   @override
+  Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused) {
+      _controller.pause();
+    }
+    else if(state == AppLifecycleState.resumed) {
+      _controller.play();
+    }
+  }
+
+  @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     source = widget.source;
     alternative.add(widget.source["videoUrl"]);
@@ -42,7 +53,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
 
   @override
   void dispose() {
-    _controller.pause();
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -261,17 +272,9 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                     _controller = controller;
                     _controller.cue();
                     _controller.addListener(() {
-                      if (_singleton.isAppStatePaused != "normal") {
-                        if (_singleton.isAppStatePaused == "paused")
-                          _controller.pause();
-                        else if (_singleton.isAppStatePaused == "resumed") {
-                          _controller.play();
-                          _singleton.isAppStatePaused = "normal";
-                        }
-                      }
-
                       if (_controller.value.isFullScreen) {
                         _singleton.isFullScreen = true;
+                        SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
                       } else {
                         _singleton.isFullScreen = false;
                         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

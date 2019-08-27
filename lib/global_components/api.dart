@@ -237,3 +237,131 @@ class MusicApi {
     }
   }
 }
+
+class PlayListApi {
+  static String _playListPath = "playLists";
+
+  static Future<dynamic> create(body, userId) async {
+    http.Response response;
+    String path = "/$_playListPath/create";
+    Map<String, String> queryParameters = {};
+    queryParameters["userId"] = userId;
+    Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    print(uri);
+    try {
+      response = await http.post(uri, body: body, headers: {'Content-type': 'application/json'});
+    } catch (e) {
+      print(e);
+    }
+    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
+    return jsonDecode(response.body);
+  }
+
+  static Future<List<dynamic>> getMyPlayLists(userId) async {
+    var response;
+    String path = "/$_playListPath/$userId";
+    var uri = Uri.http("${Api.host}:${Api.port}", path);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return decodedResponse;
+    } else {
+      print(decodedResponse);
+      throw Exception('Failed to load play lists');
+    }
+  }
+
+  static Future<dynamic> getOne(playListId) async {
+    var response;
+    String path = "/$_playListPath/one";
+    Map<String, String> queryParameters = {};
+    queryParameters["playListId"] = playListId;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return decodedResponse;
+    } else {
+      print(decodedResponse);
+      throw Exception('Failed to get a play list');
+    }
+  }
+
+  static Future<dynamic> addMusicToPlayList(musicId,playListId) async {
+    var response;
+    String path = "/$_playListPath/addMusic";
+    Map<String, String> queryParameters = {};
+    queryParameters["musicId"] = musicId;
+    queryParameters["playListId"] = playListId;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+//    var decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+//    if (response.statusCode == 200) {
+    return response.statusCode;
+//    } else {
+
+//      print(decodedResponse);
+//      throw Exception('Failed to save a song in a play list');
+//    }
+  }
+
+  static Future<dynamic> removeMusicFromPlayList(musicId,playListId) async {
+    var response;
+    String path = "/$_playListPath/removeMusic";
+    Map<String, String> queryParameters = {};
+    queryParameters["musicId"] = musicId;
+    queryParameters["playListId"] = playListId;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return decodedResponse;
+    } else {
+      print(decodedResponse);
+      throw Exception('Failed to remove a song from play list');
+    }
+  }
+
+  static Future<int> remove(playListId) async {
+    var response;
+    String path = "/$_playListPath/remove/$playListId";
+    var uri = Uri.http("${Api.host}:${Api.port}", path);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return response.statusCode;
+    } else {
+      throw Exception('Failed to remove a play list');
+    }
+  }
+}

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
+import 'package:JustMusic/utils/logo.dart';
+import 'package:JustMusic/utils/slide_right_route.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
@@ -28,58 +30,66 @@ class CategoryPageState extends State<CategoryPage>
     Color.fromRGBO(176, 162, 149, 1),
   ];
   Singleton _singleton = Singleton();
+  SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-
-    loadCategoriesFromDisk = _loadCategoriesFromDisk();
-    loadCategoriesFromDisk.then((categoriesFromDisk) {
-      if (categoriesFromDisk == null) {
-        setState(() {
-          loadingFromServer = true;
-        });
-        loadCategoriesFromServer = MusicApi.getCategories();
-        loadCategoriesFromServer.then((List<dynamic> categoriesFromServer) {
-          categoriesFromServer.sort((a, b) {
-            return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+    getPrefInstance().then((pref){
+      prefs = pref;
+      loadCategoriesFromDisk = _loadCategoriesFromDisk();
+      loadCategoriesFromDisk.then((categoriesFromDisk) {
+        if (categoriesFromDisk == null) {
+          setState(() {
+            loadingFromServer = true;
           });
-          _allCategories.addAll(categoriesFromServer);
-          _setCategoriesToDisk(categoriesFromServer);
+          loadCategoriesFromServer = MusicApi.getCategories();
+          loadCategoriesFromServer.then((List<dynamic> categoriesFromServer) {
+            categoriesFromServer.sort((a, b) {
+              return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+            });
+            _allCategories.addAll(categoriesFromServer);
+            _setCategoriesToDisk(categoriesFromServer);
+          });
+          print("cateogries loaded from server");
+        } else {
+          _allCategories.addAll(categoriesFromDisk);
+          print("categories loaded from localstorage");
+        }
+      });
+
+      _loadSelectedCategoriesFromDisk().then((selectedCategories) {
+        if (selectedCategories != null) setState(() {
+          _selectedCategories.addAll(selectedCategories);
         });
-        print("cateogries loaded from server");
-      } else {
-        _allCategories.addAll(categoriesFromDisk);
-        print("categories loaded from localstorage");
-      }
-    });
-    _loadSelectedCategoriesFromDisk().then((List<dynamic> selectedCategories) {
-      setState(() {
-        _selectedCategories.addAll(selectedCategories);
+        else setState(() {
+          _selectedCategories = [];
+        });
       });
     });
   }
 
-  Future<void> _setCategoriesToDisk(List<dynamic> categories) async {
+  Future<SharedPreferences> getPrefInstance() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs;
+  }
+
+  Future<void> _setCategoriesToDisk(List<dynamic> categories) async {
     prefs.setString("categories", json.encode(categories));
   }
 
   _loadCategoriesFromDisk() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     var categories = prefs.getString('categories');
     return categories == null ? null : json.decode(categories);
   }
 
   Future<void> _setSelectedCategoriesToDisk(List<dynamic> categories) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("selectedCategories", json.encode(categories));
   }
 
-  Future<List<dynamic>> _loadSelectedCategoriesFromDisk() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  _loadSelectedCategoriesFromDisk() async {
     var categories = prefs.getString('selectedCategories');
-    return json.decode(categories);
+    if (categories != null) return json.decode(categories);
   }
 
   @override
@@ -115,136 +125,210 @@ class CategoryPageState extends State<CategoryPage>
                                 color: Colors.white,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold)),
-                        _selectedCategories.isNotEmpty
-                            ? Container(
-                                margin: EdgeInsets.fromLTRB(0, 7, 0, 7),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      stops: [
-                                        0.4,
-                                        0.8,
-                                        1
-                                      ],
-                                      colors: [
-                                        Color.fromRGBO(25, 25, 30, 1),
-                                        Color.fromRGBO(45, 45, 50, 1),
-                                        Color.fromRGBO(85, 85, 90, 1),
-                                      ]),
-                                  border: Border.all(
-                                      color: Colors.white54, width: .7),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(3.0)),
-                                ),
-                                child: RaisedButton.icon(
-                                    elevation: 0,
-                                    textColor: Colors.red,
-                                    color: Colors.transparent,
-                                    onPressed: () {
-                                      _setSelectedCategoriesToDisk(
-                                          _selectedCategories);
-                                      print("ahai$_selectedCategories");
-                                      Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  AppScreen(
-                                                      navigatedPage: HomePage(
-                                                          selectedCategories:
-                                                              _selectedCategories))));
-                                      _singleton.clicked = 0;
-                                    },
-                                    icon: Icon(Icons.play_circle_outline),
-                                    label: Text("PLAY",
-                                        style: TextStyle(color: Colors.white))))
-                            : Container()
+                        Container(
+                            margin: EdgeInsets.fromLTRB(0, 7, 0, 7),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  stops: [
+                                    0.4,
+                                    0.8,
+                                    1
+                                  ],
+                                  colors: [
+                                    Color.fromRGBO(25, 25, 30, 1),
+                                    Color.fromRGBO(45, 45, 50, 1),
+                                    Color.fromRGBO(85, 85, 90, 1),
+                                  ]),
+                              border:
+                                  Border.all(color: Colors.white54, width: .7),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(3.0)),
+                            ),
+                            child: RaisedButton.icon(
+                                elevation: 0,
+                                textColor: Colors.red,
+                                color: Colors.transparent,
+                                onPressed: () {
+                                  _setSelectedCategoriesToDisk(
+                                      _selectedCategories);
+                                  Navigator.push(
+                                      context,
+                                      SlideRightRoute(
+                                        rightToLeft: true,
+                                          page:
+                                              AppScreen(
+                                                  navigatedPage: HomePage(
+                                                      selectedCategories:
+                                                          _selectedCategories))));
+                                  _singleton.clicked = 9;
+                                  _singleton.widgetLayers+=1;
+                                },
+                                icon: Icon(Icons.play_circle_outline),
+                                label: Text("PLAY",
+                                    style: TextStyle(color: Colors.white))))
                       ]))),
               body: _allCategories.isEmpty
                   ? EmptySearchWidget(textInput: "No existing category.")
                   : Stack(children: [
                       Container(
-                          child: CustomScrollView(slivers: [
-                        SliverPadding(
-                            padding: EdgeInsets.only(bottom: 50.0),
-                            sliver: SliverGrid(
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                        childAspectRatio: 0.667,
-                                        crossAxisCount: 3),
-                                delegate: SliverChildListDelegate([]
-                                  ..addAll(_allCategories.map((category) {
-                                    return GestureDetector(
-                                        onTap: () {
-                                          if (_selectedCategories.any((e) {
-                                            return e['title'] ==
-                                                category['title'];
-                                          })) {
-                                            setState(() {
-                                              _selectedCategories.removeWhere(
-                                                  (selCat) =>
-                                                      selCat['title'] ==
-                                                      category['title']);
-                                            });
-                                          } else {
-                                            if (_selectedCategories.length <
-                                                10) {
-                                              setState(() {
-                                                _selectedCategories
-                                                    .add(category);
-                                              });
-                                            }
-                                          }
-                                        },
-                                        child: Stack(children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                                color: gridBgColors[
-                                                    Random().nextInt(5)],
-                                                image: DecorationImage(
-                                                    image: NetworkImage(
-                                                        category['imageUrl']))),
-                                          ),
-                                          _selectedCategories.any((e) {
-                                            return e['title'] ==
-                                                category['title'];
-                                          })
-                                              ? Container(
+                          child: Column(children: [
+                        GestureDetector(
+                            onTap: () {
+                              if (_selectedCategories.isNotEmpty) {
+                                setState(() {
+                                  _selectedCategories.clear();
+                                });
+                              }
+                            },
+                            child:
+                                Stack(alignment: Alignment.center, children: [
+                              Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height:
+                                      MediaQuery.of(context).size.width * .3,
+                                  decoration: BoxDecoration(
+                                      color: gridBgColors[Random().nextInt(5)],
+                                      image: DecorationImage(
+                                          image: NetworkImage(
+                                              "http://ik.imagekit.io/kitkitkitit/tr:q-100,ar-10-3,w-1000/all.jpg")))),
+                              _selectedCategories.isEmpty
+                                  ? Container(
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              .3,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Color.fromRGBO(
+                                                250, 250, 250, 1.0),
+                                            width: 0.5,
+                                            style: BorderStyle.solid),
+                                      ))
+                                  : EmptyShadowGrid(
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              .3),
+                              Center(
+                                  child: Text("A L L",
+                                      style: TextStyle(
+                                          shadows: [
+                                            Shadow(
+                                                color: Colors.black,
+                                                blurRadius: 3.0)
+                                          ],
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 19.0,
+                                          color: _selectedCategories.isEmpty
+                                              ? Colors.white
+                                              : Color.fromRGBO(
+                                                  255, 255, 255, 0.6))))
+                            ])),
+                        Container(
+                            height: MediaQuery.of(context).size.height * .86 -
+                                (MediaQuery.of(context).size.width * .3),
+                            child: CustomScrollView(slivers: [
+                              SliverPadding(
+                                  padding: EdgeInsets.only(bottom: 50.0),
+                                  sliver: SliverGrid(
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                              childAspectRatio: 0.667,
+                                              crossAxisCount: 3),
+                                      delegate: SliverChildListDelegate([]
+                                        ..addAll(_allCategories.map((category) {
+                                          return GestureDetector(
+                                              onTap: () {
+                                                if (_selectedCategories
+                                                    .any((e) {
+                                                  return e['title'] ==
+                                                      category['title'];
+                                                })) {
+                                                  setState(() {
+                                                    _selectedCategories
+                                                        .removeWhere((selCat) =>
+                                                            selCat['title'] ==
+                                                            category['title']);
+                                                  });
+                                                } else {
+                                                  if (_selectedCategories
+                                                          .length <
+                                                      10) {
+                                                    setState(() {
+                                                      _selectedCategories
+                                                          .add(category);
+                                                    });
+                                                  }
+                                                }
+                                              },
+                                              child: Stack(children: [
+                                                Container(
                                                   decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                      color: Color.fromRGBO(
-                                                          250, 250, 250, 1.0),
-                                                      width: 0.5,
-                                                      style: BorderStyle.solid),
-                                                ))
-                                              : EmptyShadowGrid(),
-                                          Center(
-                                              child: Text(
-                                                  category['title']
-                                                      .toUpperCase(),
-                                                  style: TextStyle(
-                                                      shadows: [
-                                                        Shadow(
-                                                            color: Colors.black,
-                                                            blurRadius: 3.0)
-                                                      ],
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16.0,
-                                                      color: _selectedCategories
-                                                              .any((e) {
-                                                        return e['title'] ==
-                                                            category['title'];
-                                                      })
-                                                          ? Colors.white
-                                                          : Color.fromRGBO(255,
-                                                              255, 255, 0.6))))
-                                        ]));
-                                  })))))
+                                                      color: gridBgColors[
+                                                          Random().nextInt(5)],
+                                                      image: DecorationImage(
+                                                          image: NetworkImage(
+                                                              category[
+                                                                  'imageUrl']))),
+                                                ),
+                                                _selectedCategories.any((e) {
+                                                  return e['title'] ==
+                                                      category['title'];
+                                                })
+                                                    ? Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                        border: Border.all(
+                                                            color:
+                                                                Color.fromRGBO(
+                                                                    250,
+                                                                    250,
+                                                                    250,
+                                                                    1.0),
+                                                            width: 0.5,
+                                                            style: BorderStyle
+                                                                .solid),
+                                                      ))
+                                                    : EmptyShadowGrid(),
+                                                Center(
+                                                    child: Text(
+                                                        category['title']
+                                                            .toUpperCase(),
+                                                        style: TextStyle(
+                                                            shadows: [
+                                                              Shadow(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  blurRadius:
+                                                                      3.0)
+                                                            ],
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 16.0,
+                                                            color: _selectedCategories
+                                                                    .any((e) {
+                                                              return e[
+                                                                      'title'] ==
+                                                                  category[
+                                                                      'title'];
+                                                            })
+                                                                ? Colors.white
+                                                                : Color
+                                                                    .fromRGBO(
+                                                                        255,
+                                                                        255,
+                                                                        255,
+                                                                        0.6))))
+                                              ]));
+                                        })))))
+                            ]))
                       ])),
                     ]),
             );
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child:
+            Container(
+                child: Logo()
+            ));
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[
@@ -259,8 +343,7 @@ class CategoryPageState extends State<CategoryPage>
             ]));
           } else {
             return Center(
-                child: Text("build function returned null",
-                    style: TextStyle(color: Colors.white)));
+                child: CircularProgressIndicator());
           }
         });
   }

@@ -41,9 +41,16 @@ class ProfilePageState extends State<ProfilePage>
   bool _isPaused = false;
   bool _isRepeatOn = false;
   bool _isRepeatAllOn = false;
+  List<dynamic> _myPlayLists = [];
 
   void initState() {
     super.initState();
+    PlayListApi.getMyPlayLists(_singleton.user.id).then((playLists) {
+      setState(() {
+        _myPlayLists.addAll(playLists);
+      });
+    });
+
     _listViewScrollController = new ScrollController()
       ..addListener(_scrollListener);
 
@@ -212,11 +219,39 @@ class ProfilePageState extends State<ProfilePage>
                                 child: Stack(children: [
                                   items[index]['thumbnailUrl'] != null
                                       ? Center(
-                                          child: Image.network(
-                                              items[index]['thumbnailUrl']))
+                                          child: GestureDetector(
+                                              onTap: () {
+                                                if (type == "myBlocks")
+                                                  _showDialog(
+                                                      items[index]["_id"]);
+                                                else
+                                                  setState(() {
+                                                    _currentlySelectedPlayList =
+                                                        items;
+                                                    _currentlyPlayingIndex =
+                                                        index;
+                                                    _musicActivated = true;
+                                                  });
+                                              },
+                                              child: Image.network(items[index]
+                                                  ['thumbnailUrl'])))
                                       : Center(
-                                          child: Image.network(
-                                              "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg")),
+                                          child: GestureDetector(
+                                              onTap: () {
+                                                if (type == "myBlocks")
+                                                  _showDialog(
+                                                      items[index]["_id"]);
+                                                else
+                                                  setState(() {
+                                                    _currentlySelectedPlayList =
+                                                        items;
+                                                    _currentlyPlayingIndex =
+                                                        index;
+                                                    _musicActivated = true;
+                                                  });
+                                              },
+                                              child: Image.network(
+                                                  "https://ik.imagekit.io/kitkitkitit/tr:q-100,w-106,h-62/thumbnail-default.jpg"))),
                                   type == "myPosts"
                                       ? Positioned(
                                           top: 0,
@@ -256,7 +291,8 @@ class ProfilePageState extends State<ProfilePage>
                                             _showDialog(items[index]["_id"]);
                                           else
                                             setState(() {
-                                              _currentlySelectedPlayList = items;
+                                              _currentlySelectedPlayList =
+                                                  items;
                                               _currentlyPlayingIndex = index;
                                               _musicActivated = true;
                                             });
@@ -284,7 +320,7 @@ class ProfilePageState extends State<ProfilePage>
                 await FirebaseAuth.instance.signOut();
                 FlutterSecureStorage().deleteAll();
                 _singleton.user = null;
-                _singleton.clicked = 1;
+                _singleton.clicked = 0;
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => AppScreen()),
@@ -316,10 +352,11 @@ class ProfilePageState extends State<ProfilePage>
         child: Stack(children: [
           YoutubePlayer(
             context: context,
-            videoId: YoutubePlayer.convertUrlToId(
-                _currentlySelectedPlayList.isNotEmpty && _currentlySelectedPlayList[_currentlyPlayingIndex] != null
-                    ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
-                    : "https://youtu.be/HoXNpjUOx4U"),
+            videoId: YoutubePlayer.convertUrlToId(_currentlySelectedPlayList
+                        .isNotEmpty &&
+                    _currentlySelectedPlayList[_currentlyPlayingIndex] != null
+                ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
+                : "https://youtu.be/HoXNpjUOx4U"),
             flags: YoutubePlayerFlags(
               disableDragSeek: true,
               autoPlay: true,
@@ -345,12 +382,12 @@ class ProfilePageState extends State<ProfilePage>
                       [DeviceOrientation.portraitUp]);
                 }
                 if (_controller.value.playerState == PlayerState.PAUSED) {
-                  setState((){
+                  setState(() {
                     _isPaused = true;
                   });
                 }
                 if (_controller.value.playerState == PlayerState.PLAYING) {
-                  setState((){
+                  setState(() {
                     _isPaused = false;
                   });
                 }
@@ -358,109 +395,261 @@ class ProfilePageState extends State<ProfilePage>
                   _controller.cue();
                 }
                 if (_controller.value.playerState == PlayerState.ENDED) {
-                  _isRepeatOn ?
-                  _controller.cue() : _currentlyPlayingIndex < _currentlySelectedPlayList.length - 1 ?
-                  setState(() { _currentlyPlayingIndex += 1; }) : _isRepeatAllOn ?
-                  setState(() { _currentlyPlayingIndex = 0; }) : _controller.pause();
+                  _isRepeatOn
+                      ? _controller.cue()
+                      : _currentlyPlayingIndex <
+                              _currentlySelectedPlayList.length - 1
+                          ? setState(() {
+                              _currentlyPlayingIndex += 1;
+                            })
+                          : _isRepeatAllOn
+                              ? setState(() {
+                                  _currentlyPlayingIndex = 0;
+                                })
+                              : _controller.pause();
                 }
                 if (_controller.value.playerState == PlayerState.CUED) {
                   _controller.play();
                 }
                 if (_controller.value.hasError) {
                   print("Error: ${_controller.value.errorCode}");
-                  if(_controller.value.errorCode == 150) {
+                  if (_controller.value.errorCode == 150) {
                     setState(() {
-                      _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl'] =
-                      "https://youtu.be/HoXNpjUOx4U";
+                      _currentlySelectedPlayList[_currentlyPlayingIndex]
+                          ['videoUrl'] = "https://youtu.be/HoXNpjUOx4U";
                     });
                   }
                 }
               });
             },
           ),
-          _isPaused ? Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.width * .56,
-            foregroundDecoration: _isPaused ? BoxDecoration(
-                color: Colors.black45
-            ) : BoxDecoration(),
-          ) : Container(),
-          _isPaused ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
-              left: MediaQuery.of(context).size.width * .5 - 90,
-              child: Container(
-                  width: 60,
-                  height: 60,
-                  child: FlatButton(
-                    padding: EdgeInsets.all(0),
-                    textColor: Color.fromRGBO(255, 255, 255, 1),
-                    child: Icon(Icons.photo_size_select_large, size: 50),
-                    color: Colors.transparent,
-                    onPressed: () {
-
-                    },
-                  ))) : Container(),
-          _isPaused ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
-              left: MediaQuery.of(context).size.width * .5 - 30,
-              child: Container(
-                  width: 60,
-                  height: 60,
-                  child: FlatButton(
-                    padding: EdgeInsets.all(0),
-                    textColor: Color.fromRGBO(255, 255, 255, 1),
-                    child: Icon(Icons.play_arrow, size: 60),
-                    color: Colors.transparent,
-                    onPressed: () {
-                      _controller.play();
-                    },
-                  ))) : Container(),
-          _isPaused ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
-              left: MediaQuery.of(context).size.width * .5 + 30,
-              child: Container(
-                  width: 60,
-                  height: 60,
-                  child: FlatButton(
-                    padding: EdgeInsets.all(0),
-                    textColor: Color.fromRGBO(255, 255, 255, 1),
-                    child: Icon(Icons.repeat_one, size: 50),
-                    color: Colors.transparent,
-                    onPressed: () {
-                      setState((){
-                        _isRepeatOn = !_isRepeatOn;
-                      });
-                    },
-                  ))) : Container(),
-          _isPaused ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .5 - 30,
-              left: MediaQuery.of(context).size.width * .5 + 90,
-              child: Container(
-                  width: 60,
-                  height: 60,
-                  child: FlatButton(
-                    padding: EdgeInsets.all(0),
-                    textColor: Color.fromRGBO(255, 255, 255, 1),
-                    child: Icon(Icons.repeat, size: 50),
-                    color: Colors.transparent,
-                    onPressed: () {
-                      setState((){
-                        _isRepeatAllOn = !_isRepeatAllOn;
-                      });
-                    },
-                  ))) : Container(),
-          _isRepeatOn ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .1,
-              right: 30,
-              child: Container(
-                  child: Container(child: Icon(Icons.repeat_one, size: 20, color: Colors.white),
-                  ))) : Container(),
-          _isRepeatAllOn ? Positioned(
-              top: MediaQuery.of(context).size.width * .56 * .1,
-              right: 10,
-              child: Container(
-                  child: Container(child: Icon(Icons.repeat, size: 20, color: Colors.white),
-                  ))) : Container(),
+          _isPaused
+              ? Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.width * .56,
+                  foregroundDecoration: _isPaused
+                      ? BoxDecoration(color: Colors.black45)
+                      : BoxDecoration(),
+                )
+              : Container(),
+          _isPaused
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+                  left: MediaQuery.of(context).size.width * .5 - 150,
+                  child: Container(
+                      width: 60,
+                      height: 60,
+                      child: FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Color.fromRGBO(255, 255, 255, 1),
+                        child: Icon(Icons.archive, size: 50),
+                        color: Colors.transparent,
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  titlePadding: EdgeInsets.all(0),
+                                    contentPadding: EdgeInsets.all(0),
+                                    title: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(bottom: BorderSide(width: 0.3))
+                                      ),
+                                      padding: EdgeInsets.all(14),
+                                        child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 5),
+                                              child: Text("My Play Lists",
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold))),
+                                          Text(
+                                              "Choose a play list to save the video",
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight:
+                                                      FontWeight.normal))
+                                        ])),
+                                    content: ConstrainedBox(
+                                        constraints:
+                                            BoxConstraints(minHeight: 150, maxHeight: 250),
+                                        child: ListView.separated(
+                                            itemCount: _myPlayLists.length,
+                                            separatorBuilder: (BuildContext context, int index) => Divider(color: Colors.black),
+                                            itemBuilder: (context, index) {
+                                              return ListTile(
+                                                  leading: Text("${index+1}: ", style: TextStyle(color: Colors.blueGrey),),
+                                                  title: Text(
+                                                      _myPlayLists[index]
+                                                          ['title'],
+                                                      style: TextStyle(
+                                                          color: Colors.blueGrey)),
+                                                  onTap: () {
+                                                    showDialog(
+                                                        context: context,
+                                                        builder: (context) {
+                                                          return AlertDialog(
+                                                              title: Text(
+                                                                  "Do you want to save the video to play list: "),
+                                                              content: Text("\"${_myPlayLists[index]['title']}\""),
+                                                              actions: [
+                                                                new FlatButton(
+                                                                    child: new Text(
+                                                                        "Yes",
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                20)),
+                                                                    onPressed:
+                                                                        () {
+                                                                          PlayListApi.addMusicToPlayList(_currentlySelectedPlayList[_currentlyPlayingIndex]['_id'], _myPlayLists[index]['_id']).then((responseCode){
+                                                                            if (responseCode == 200) {
+                                                                              Navigator.of(context).pop();
+                                                                              Navigator.of(context).pop();
+                                                                            }
+                                                                            else {
+                                                                              showDialog(
+                                                                                context: context,
+                                                                                builder: (context) {
+                                                                                  return AlertDialog(
+                                                                                    title: Text("The video already exists in the play list"),
+                                                                                    actions: [
+                                                                                      new FlatButton(
+                                                                                        child: new Text(
+                                                                                          "Okay"
+                                                                                        ),onPressed: (){
+                                                                                          Navigator.of(context).pop();
+                                                                                          Navigator.of(context).pop();
+                                                                                      },
+                                                                                      )
+                                                                                    ]
+                                                                                  );
+                                                                                },
+                                                                              );
+                                                                            }
+                                                                          });
+                                                                        }),
+                                                                new FlatButton(
+                                                                    child: new Text(
+                                                                        "No",
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                20)),
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    })
+                                                              ]);
+                                                        });
+                                                  });
+                                            })),
+                                    actions: <Widget>[
+                                      new FlatButton(
+                                        child: new Text('CANCEL'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]);
+                              });
+                        },
+                      )))
+              : Container(),
+          _isPaused
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+                  left: MediaQuery.of(context).size.width * .5 - 90,
+                  child: Container(
+                      width: 60,
+                      height: 60,
+                      child: FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Color.fromRGBO(255, 255, 255, 1),
+                        child: Icon(Icons.photo_size_select_large, size: 50),
+                        color: Colors.transparent,
+                        onPressed: () {},
+                      )))
+              : Container(),
+          _isPaused
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+                  left: MediaQuery.of(context).size.width * .5 - 30,
+                  child: Container(
+                      width: 60,
+                      height: 60,
+                      child: FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Color.fromRGBO(255, 255, 255, 1),
+                        child: Icon(Icons.play_arrow, size: 60),
+                        color: Colors.transparent,
+                        onPressed: () {
+                          _controller.play();
+                        },
+                      )))
+              : Container(),
+          _isPaused
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+                  left: MediaQuery.of(context).size.width * .5 + 30,
+                  child: Container(
+                      width: 60,
+                      height: 60,
+                      child: FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Color.fromRGBO(255, 255, 255, 1),
+                        child: Icon(Icons.repeat_one, size: 50),
+                        color: Colors.transparent,
+                        onPressed: () {
+                          setState(() {
+                            _isRepeatOn = !_isRepeatOn;
+                          });
+                        },
+                      )))
+              : Container(),
+          _isPaused
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .5 - 30,
+                  left: MediaQuery.of(context).size.width * .5 + 90,
+                  child: Container(
+                      width: 60,
+                      height: 60,
+                      child: FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Color.fromRGBO(255, 255, 255, 1),
+                        child: Icon(Icons.repeat, size: 50),
+                        color: Colors.transparent,
+                        onPressed: () {
+                          setState(() {
+                            _isRepeatAllOn = !_isRepeatAllOn;
+                          });
+                        },
+                      )))
+              : Container(),
+          _isRepeatOn
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .1,
+                  right: 30,
+                  child: Container(
+                      child: Container(
+                    child:
+                        Icon(Icons.repeat_one, size: 20, color: Colors.white),
+                  )))
+              : Container(),
+          _isRepeatAllOn
+              ? Positioned(
+                  top: MediaQuery.of(context).size.width * .56 * .1,
+                  right: 10,
+                  child: Container(
+                      child: Container(
+                    child: Icon(Icons.repeat, size: 20, color: Colors.white),
+                  )))
+              : Container(),
         ]));
     return FutureBuilder(
         future: _fetchMyPosts,
@@ -653,7 +842,8 @@ class ProfilePageState extends State<ProfilePage>
                         ])),
                     Container(
                         width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.45,
+                        height: MediaQuery.of(context).size.height * 0.65 -
+                            0.45 * MediaQuery.of(context).size.width,
                         child: TabBarView(
                           controller: _tabController,
                           children: [

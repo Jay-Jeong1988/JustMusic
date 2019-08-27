@@ -3,6 +3,7 @@ import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/create/upload_music_page.dart';
+import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
@@ -161,7 +162,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
         _singleton.user = User.fromJson(decodedResponse);
         Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) => AppScreen(navigatedPage:
-              _singleton.clicked == 4 ? ProfilePage() : UploadMusicPage()
+              _singleton.clicked == 3 ? ProfilePage() : _singleton.clicked == 1 ? UploadMusicPage() : PlayListsPage()
               )),(_)=>false);
 
       } else {

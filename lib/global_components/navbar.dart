@@ -1,9 +1,7 @@
 import 'package:JustMusic/global_components/singleton.dart';
-import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:flutter/material.dart';
 import '../global_components/modal_bottom_sheet.dart';
-import '../routes/home/home_page.dart';
 import '../routes/profile/profile_page.dart';
 import '../routes/category/category_page.dart';
 import '../routes/create/upload_music_page.dart';
@@ -19,12 +17,12 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> {
-  int _clicked = 1;
+  int _clicked = 0;
   Singleton _singleton = new Singleton();
   List<Widget> navPages = [
-    HomePage(
-      key: PageStorageKey('Page1'),
-    ),
+//    HomePage(
+//      key: PageStorageKey('Page1'),
+//    ),
     CategoryPage(),
     UploadMusicPage(),
     PlayListsPage(),
@@ -55,9 +53,9 @@ class _NavBarState extends State<NavBar> {
                     : Color.fromRGBO(190, 190, 190, 1),
                 size: 30.0)),
         onPressed: () {
-          if ((index == 4 || index == 2) && _singleton.user == null) {
+          if ((index == 1 || index == 2 || index == 3) && _singleton.user == null) {
             setModalBottomSheet(context);
-            _singleton.clicked = index == 4 ? 4 : 2;
+            _singleton.clicked = index;
           } else {
             setState(() {
               _clicked = index;
@@ -90,11 +88,11 @@ class _NavBarState extends State<NavBar> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  navButton(Icons.play_arrow, 0),
-                  navButton(Icons.grid_on, 1),
-                  navButton(Icons.add_box, 2),
-                  navButton(Icons.subscriptions, 3),
-                  navButton(Icons.person, 4)
+//                  navButton(Icons.play_arrow, 0),
+                  navButton(Icons.grid_on, 0),
+                  navButton(Icons.add_box, 1),
+                  navButton(Icons.subscriptions, 2),
+                  navButton(Icons.person, 3)
                 ],
               ),
             )));

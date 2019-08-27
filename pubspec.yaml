@@ -43,6 +43,8 @@ dependencies:
 
   fluttertoast:
 
+  dotted_border:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
