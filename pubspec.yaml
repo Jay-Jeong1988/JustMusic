@@ -14,36 +14,38 @@ description: Simplest random youtube music player
 version: 0.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core:
-  firebase_auth:
+  firebase_core: 0.4.0+8
+  firebase_auth: 0.14.0+2
+  firebase_storage: 3.0.4
 
   http: ^0.12.0+2
 
-  flutter_secure_storage:
+  flutter_secure_storage: 3.2.1+1
 
-  video_player:
-    path: ./video_player-0.10.1+2-hijacking
-
-  geolocator:
+  geolocator: 5.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
-  youtube_player_flutter:
+  youtube_player_flutter: 4.1.0
 
-  device_info:
+  device_info: 0.4.0+2
 
-  shared_preferences:
+  shared_preferences: 0.5.3+4
 
-  fluttertoast:
+  fluttertoast: 3.1.0
 
-  dotted_border:
+  dotted_border: 1.0.2
+
+  image_cropper: 1.0.2
+
+  image_picker: 0.6.0+17
 
 dev_dependencies:
   flutter_test:

@@ -36,7 +36,9 @@ class User {
         id: user['profile']['_id'],
         firstName: user['profile']['firstName'],
         lastName: user['profile']['lastName'],
-        birthDay: user['profile']['birthDay']
+        birthDay: user['profile']['birthDay'],
+        pictureUrl: user['profile']['pictureUrl'],
+        bannerImageUrl: user['profile']['bannerImageUrl'],
       )
     );
   }
@@ -80,11 +82,15 @@ class Profile {
   final String firstName;
   final String lastName;
   final String birthDay;
+  final String pictureUrl;
+  final String bannerImageUrl;
 
   Profile({
     this.id,
     this.firstName,
     this.lastName,
     this.birthDay,
+    this.pictureUrl,
+    this.bannerImageUrl
   });
 }

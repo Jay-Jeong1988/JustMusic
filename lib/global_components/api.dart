@@ -54,7 +54,7 @@ class UserApi extends Api{
     http.Response response;
     String path = "/$_userPath/signup";
     Uri uri = Uri.http("${Api.host}:${Api.port}", path);
-    var body = {"phoneNumber": user.phoneNumber};
+    var body = {"phoneNumber": user.phoneNumber, "accountId": user.uid};
     print(uri);
 
     try {
@@ -81,6 +81,36 @@ class UserApi extends Api{
     print('Response status: ${response.statusCode}');
     print("${response.body}");
     return response.statusCode == 200 ? true : false;
+  }
+
+  static Future<void> updateProfileImage(userId, pictureUrl) async {
+    Map<String, String> queryParam = {"pictureUrl": pictureUrl};
+    String path = "/$_userPath/$userId/updateProfile";
+    var response;
+    Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
+    print(uri);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    print('Response status: ${response.statusCode}');
+    print("${response.body}");
+  }
+
+  static Future<void> updateBannerImage(userId, pictureUrl) async {
+    Map<String, String> queryParam = {"pictureUrl": pictureUrl};
+    String path = "/$_userPath/$userId/updateBanner";
+    var response;
+    Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
+    print(uri);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    print('Response status: ${response.statusCode}');
+    print("${response.body}");
   }
 }
 
