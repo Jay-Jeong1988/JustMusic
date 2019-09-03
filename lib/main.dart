@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:JustMusic/routes/category/play_page.dart';
 import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,7 +88,7 @@ class _AppScreenState extends State<AppScreen> {
         }
       });
 
-    currentPage = widget.navigatedPage ?? CategoryPage();
+    currentPage = widget.navigatedPage ?? PlayPage();
 
     loadCountryFromDisk = _loadCountryFromDisk();
     loadCountryFromDisk.then((countryFromDisk){
@@ -138,6 +139,7 @@ class _AppScreenState extends State<AppScreen> {
       return Future.value(true);
     }else {
       _singleton.widgetLayers-=1;
+      _singleton.removeNavbar = false;
       return Future.value(true);
     }
   }

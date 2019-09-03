@@ -1,13 +1,9 @@
 import 'dart:convert';
 
 import 'package:JustMusic/global_components/api.dart';
-import 'package:JustMusic/global_components/singleton.dart';
-import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/logo.dart';
-import 'package:JustMusic/utils/slide_right_route.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../main.dart';
 import '../../global_components/empty_widgets.dart';
 import 'dart:math';
 
@@ -29,7 +25,6 @@ class CategoryPageState extends State<CategoryPage>
     Color.fromRGBO(115, 149, 173, 1),
     Color.fromRGBO(176, 162, 149, 1),
   ];
-  Singleton _singleton = Singleton();
   SharedPreferences prefs;
 
   @override
@@ -92,6 +87,13 @@ class CategoryPageState extends State<CategoryPage>
     if (categories != null) return json.decode(categories);
   }
 
+  Widget _customBackButton(){
+    _setSelectedCategoriesToDisk(
+        _selectedCategories);
+    return IconButton(icon: Icon(Icons.arrow_back_ios), color: Colors.white,
+        onPressed: ()=>Navigator.pop(context, _selectedCategories));
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -119,54 +121,13 @@ class CategoryPageState extends State<CategoryPage>
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            _customBackButton(),
                         Text("Pick genres up to 10",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold)),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(0, 7, 0, 7),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  stops: [
-                                    0.4,
-                                    0.8,
-                                    1
-                                  ],
-                                  colors: [
-                                    Color.fromRGBO(25, 25, 30, 1),
-                                    Color.fromRGBO(45, 45, 50, 1),
-                                    Color.fromRGBO(85, 85, 90, 1),
-                                  ]),
-                              border:
-                                  Border.all(color: Colors.white54, width: .7),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(3.0)),
-                            ),
-                            child: RaisedButton.icon(
-                                elevation: 0,
-                                textColor: Colors.red,
-                                color: Colors.transparent,
-                                onPressed: () {
-                                  _setSelectedCategoriesToDisk(
-                                      _selectedCategories);
-                                  Navigator.push(
-                                      context,
-                                      SlideRightRoute(
-                                        rightToLeft: true,
-                                          page:
-                                              AppScreen(
-                                                  navigatedPage: HomePage(
-                                                      selectedCategories:
-                                                          _selectedCategories))));
-                                  _singleton.clicked = 9;
-                                  _singleton.widgetLayers+=1;
-                                },
-                                icon: Icon(Icons.play_circle_outline),
-                                label: Text("PLAY",
-                                    style: TextStyle(color: Colors.white))))
                       ]))),
               body: _allCategories.isEmpty
                   ? EmptySearchWidget(textInput: "No existing category.")

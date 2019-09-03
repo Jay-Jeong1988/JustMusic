@@ -1,6 +1,7 @@
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/utils/image_uploader.dart';
+import 'package:JustMusic/utils/save_to_playlist_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -330,132 +331,6 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Widget _saveToPlayListButton(){
-    return Container(
-        width: 60,
-        height: 60,
-        child: FlatButton(
-          padding: EdgeInsets.all(0),
-          textColor: Color.fromRGBO(255, 255, 255, 1),
-          child: Icon(Icons.archive, size: 50),
-          color: Colors.transparent,
-          onPressed: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                      titlePadding: EdgeInsets.all(0),
-                      contentPadding: EdgeInsets.all(0),
-                      title: Container(
-                          decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(width: 0.3))
-                          ),
-                          padding: EdgeInsets.all(14),
-                          child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                    margin:
-                                    EdgeInsets.only(bottom: 5),
-                                    child: Text("My Play Lists",
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight:
-                                            FontWeight.bold))),
-                                Text(
-                                    "Choose a play list to save the video",
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight:
-                                        FontWeight.normal))
-                              ])),
-                      content: ConstrainedBox(
-                          constraints:
-                          BoxConstraints(minHeight: 150, maxHeight: 250),
-                          child: ListView.separated(
-                              itemCount: _myPlayLists.length,
-                              separatorBuilder: (BuildContext context, int index) => Divider(color: Colors.black),
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                    leading: Text("${index+1}: ", style: TextStyle(color: Colors.blueGrey),),
-                                    title: Text(
-                                        _myPlayLists[index]
-                                        ['title'],
-                                        style: TextStyle(
-                                            color: Colors.blueGrey)),
-                                    onTap: () {
-                                      showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                                title: Text(
-                                                    "Do you want to save the video to play list: "),
-                                                content: Text("\"${_myPlayLists[index]['title']}\""),
-                                                actions: [
-                                                  new FlatButton(
-                                                      child: new Text(
-                                                          "Yes",
-                                                          style: TextStyle(
-                                                              fontSize:
-                                                              20)),
-                                                      onPressed:
-                                                          () {
-                                                        PlayListApi.addMusicToPlayList(_currentlySelectedPlayList[_currentlyPlayingIndex]['_id'], _myPlayLists[index]['_id']).then((responseCode){
-                                                          if (responseCode == 200) {
-                                                            Navigator.of(context).pop();
-                                                            Navigator.of(context).pop();
-                                                          }
-                                                          else {
-                                                            showDialog(
-                                                              context: context,
-                                                              builder: (context) {
-                                                                return AlertDialog(
-                                                                    title: Text("The video already exists in the play list"),
-                                                                    actions: [
-                                                                      new FlatButton(
-                                                                        child: new Text(
-                                                                            "Okay"
-                                                                        ),onPressed: (){
-                                                                        Navigator.of(context).pop();
-                                                                        Navigator.of(context).pop();
-                                                                      },
-                                                                      )
-                                                                    ]
-                                                                );
-                                                              },
-                                                            );
-                                                          }
-                                                        });
-                                                      }),
-                                                  new FlatButton(
-                                                      child: new Text(
-                                                          "No",
-                                                          style: TextStyle(
-                                                              fontSize:
-                                                              20)),
-                                                      onPressed:
-                                                          () {
-                                                        Navigator.of(
-                                                            context)
-                                                            .pop();
-                                                      })
-                                                ]);
-                                          });
-                                    });
-                              })),
-                      actions: <Widget>[
-                        new FlatButton(
-                          child: new Text('CANCEL'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        )
-                      ]);
-                });
-          },
-        ));
-  }
 
   Widget _youtubePlayer() {
     return YoutubePlayer(
@@ -545,7 +420,11 @@ class ProfilePageState extends State<ProfilePage>
       Positioned(
           top: MediaQuery.of(context).size.width * .56 * .5 - 30,
           left: MediaQuery.of(context).size.width * .5 - 150,
-          child: _saveToPlayListButton()),
+          child: _currentlySelectedPlayList.isNotEmpty ?
+          SaveToPlayListButton(
+              currentlyPlaying: _currentlySelectedPlayList[_currentlyPlayingIndex],
+              saveIcon: Icon(Icons.archive, size: 50, color: Colors.white)
+          ) : Container()),
       Positioned(
           top: MediaQuery.of(context).size.width * .56 * .5 - 30,
           left: MediaQuery.of(context).size.width * .5 - 90,
@@ -696,7 +575,19 @@ class ProfilePageState extends State<ProfilePage>
                       .width *
                       .4,
                   child: Center(
-                      child: Container(
+                      child: GestureDetector(onTap: ()async{
+                        var result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (BuildContext context) => ImageCapture(navigatedFrom: "profileImage")),
+                        );
+                        if (result != null) {
+                          UserApi.updateProfileImage(_singleton.user.id, result).then((r){
+                            setState((){
+                              _singleton.user.profile.pictureUrl = result;
+                            });
+                          });
+                        }
+                      },child: Container(
                           width: MediaQuery.of(context)
                               .size
                               .height *
@@ -715,21 +606,13 @@ class ProfilePageState extends State<ProfilePage>
                               color: Color.fromRGBO(
                                   70, 70, 80, 1)),
                           child: _singleton.user.profile.pictureUrl != null ?
-                              Container()
+                               Container()
                           : IconButton(
                               icon: Icon(Icons.photo_camera, color: Colors.white70),
                               iconSize: 35,
-                              onPressed: () async {
-                                var result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (BuildContext context) => ImageCapture(navigatedFrom: "profileImage")),
-                                );
-                                if (result != null) {
-                                  UserApi.updateProfileImage(_singleton.user.id, result).then((r){
-                                    setState((){});
-                                  });
-                                }
-                              })))),
+                              onPressed: () {
+
+                              }))))),
               Container(
                   child: Column(
                       crossAxisAlignment:
@@ -828,7 +711,9 @@ class ProfilePageState extends State<ProfilePage>
                         );
                         if (result != null) {
                           UserApi.updateBannerImage(_singleton.user.id, result).then((r){
-                            setState((){});
+                            setState((){
+                              _singleton.user.profile.bannerImageUrl = result;
+                            });
                           });
                         }
                       },

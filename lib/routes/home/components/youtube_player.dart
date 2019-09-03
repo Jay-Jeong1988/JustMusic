@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/utils/save_to_playlist_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -91,18 +92,33 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     };
     Map<String, Icon> icons = {
       "Like": Icon(Icons.favorite, size: 30),
-      "Save": Icon(Icons.library_music, size: 30),
+      "Save": Icon(Icons.library_music, size: 30, color: colors["Save"]),
       "Block": Icon(Icons.block, size: 30),
       "LikeDisabled": Icon(Icons.favorite_border, size: 30),
-      "SaveDisabled": Icon(Icons.library_add, size: 30),
+      "SaveDisabled": Icon(Icons.library_add, size: 30, color: colors["SaveDisabled"]),
       "BlockDisabled": Icon(Icons.block, size: 30)
     };
+
+    var icon = statusVar == false ? icons["${name}Disabled"] : icons[name];
+    var color = statusVar == false
+        ? colors["${name}Disabled"]
+        : colors[name];
 
     return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 50),
         child: Container(
             margin: EdgeInsets.only(bottom: 5),
-            child: FlatButton(
+            child: name == "Save" ?
+                SaveToPlayListButton(
+                    saveIcon: Column(
+                        children: [
+                          icon,
+                          Text("Save",
+                              style: TextStyle(
+                                  color: color
+                              ))]),
+                    currentlyPlaying: source)
+                : FlatButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
                   if (widget.user != null) {
@@ -162,11 +178,9 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                     print("user is null");
                   }
                 },
-                textColor: statusVar == false
-                    ? colors["${name}Disabled"]
-                    : colors[name],
+                textColor: color,
                 child: Column(children: [
-                  statusVar == false ? icons["${name}Disabled"] : icons[name],
+                  icon,
                   Text(name)
                 ]))));
   }

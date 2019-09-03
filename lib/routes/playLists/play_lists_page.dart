@@ -110,7 +110,7 @@ class PlayListsPageState extends State<PlayListsPage> {
                                   .floor()]
                               ['songs']))));
               _singleton.widgetLayers+=1;
-              _singleton.clicked = 9;
+              _singleton.removeNavbar=true;
             },
           )
         ],

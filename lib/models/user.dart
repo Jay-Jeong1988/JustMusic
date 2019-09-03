@@ -82,8 +82,8 @@ class Profile {
   final String firstName;
   final String lastName;
   final String birthDay;
-  final String pictureUrl;
-  final String bannerImageUrl;
+   String pictureUrl;
+   String bannerImageUrl;
 
   Profile({
     this.id,

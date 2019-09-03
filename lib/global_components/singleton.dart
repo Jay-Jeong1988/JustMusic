@@ -7,6 +7,7 @@ class Singleton {
   int clicked;
   User user;
   int widgetLayers = 1;
+  bool removeNavbar = false;
 
   factory Singleton() {
     return _singleton;
