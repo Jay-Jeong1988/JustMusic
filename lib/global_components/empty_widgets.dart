@@ -19,7 +19,7 @@ class EmptyShadowGrid extends StatelessWidget {
         height: height ?? MediaQuery.of(context).size.height,
         decoration: BoxDecoration(boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(30, 30, 30, 0.8),
+            color: Color.fromRGBO(30, 30, 30, 0.7),
           )
         ]));
   }

@@ -50,6 +50,7 @@ class PlayPageState extends State<PlayPage> {
                 tileMode: TileMode.clamp)
         ),
         child: Scaffold(
+          backgroundColor: Colors.transparent,
       body: Stack(
         children: [Positioned(
           left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.width * 0.15,

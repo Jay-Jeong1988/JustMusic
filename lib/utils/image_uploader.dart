@@ -104,6 +104,7 @@ class ImageCaptureState extends State<ImageCapture> {
             tileMode: TileMode.clamp)
       ),
         child: Scaffold(
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
             elevation: 0,
             backgroundColor: Colors.transparent,

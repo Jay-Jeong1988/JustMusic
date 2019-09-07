@@ -698,7 +698,7 @@ class ProfilePageState extends State<ProfilePage>
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Scaffold(
-                backgroundColor: Color.fromRGBO(27, 25, 35, .8),
+                backgroundColor: Color.fromRGBO(20, 18, 28, 1),
                 body: Stack(children: [
                   Column(children: [
                     _musicActivated

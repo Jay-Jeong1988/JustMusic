@@ -89,7 +89,6 @@ class _NavBarState extends State<NavBar> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-//                  navButton(Icons.play_arrow, 0),
                   navButton(Icons.play_arrow, 0),
                   navButton(Icons.add_box, 1),
                   navButton(Icons.subscriptions, 2),

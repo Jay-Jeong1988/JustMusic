@@ -159,9 +159,14 @@ class CategoryPageState extends State<CategoryPage>
                                           MediaQuery.of(context).size.width *
                                               .3,
                                       decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Color.fromRGBO(255, 255, 255, 0.1),
+                                          )
+                                        ],
                                         border: Border.all(
                                             color: Color.fromRGBO(
-                                                250, 250, 250, 1.0),
+                                                255, 255, 255, 1.0),
                                             width: 0.5,
                                             style: BorderStyle.solid),
                                       ))

@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './models/user.dart';
-import './routes/category/category_page.dart';
 import './global_components/navbar.dart';
 import './models/country.dart';
 import './utils/locationUtil.dart';
@@ -16,10 +15,7 @@ import 'global_components/api.dart';
 import 'global_components/singleton.dart';
 
 void main() {
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-      .then((_) {
-    runApp(App());
-  });
+  runApp(App());
 }
 
 class App extends StatelessWidget {
@@ -28,7 +24,8 @@ class App extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'JustMusic',
-        theme: ThemeData(canvasColor: Colors.transparent),
+        theme: ThemeData(canvasColor: Color.fromRGBO(220, 220, 220, 1.0),
+        ),
         home: AppScreen());
   }
 }
@@ -65,6 +62,7 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   void initState() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.initState();
     Api(); //create an Api instance to determine which host the app should use
       _storage.read(key: "user").then((userJson) {

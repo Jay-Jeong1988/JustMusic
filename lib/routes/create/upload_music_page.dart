@@ -30,26 +30,24 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   @override
   void initState() {
     super.initState();
+    _user = _singleton.user;
     _scrollController.addListener((){});
     _storage.read(key: "ak").then((key) {
-      setState(() {
-        _ak = key;
+      MusicApi.getCategories().then((categories) {
+        categories.sort((a, b) {
+          return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+        });
+        setState(() {
+          _ak = key;
+          _allCategoryTitles.addAll(categories.map((category) {
+            String title = category["title"][0].toUpperCase() +
+                category["title"].substring(1);
+            return title;
+          }));
+        });
       });
     }).catchError((error) {
       print(error);
-    });
-    _user = _singleton.user;
-    MusicApi.getCategories().then((categories) {
-      categories.sort((a, b) {
-        return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
-      });
-      setState(() {
-        _allCategoryTitles.addAll(categories.map((category) {
-          String title = category["title"][0].toUpperCase() +
-              category["title"].substring(1);
-          return title;
-        }));
-      });
     });
   }
 
@@ -112,6 +110,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
         child: Container(
             padding: padding,
             child: TextField(
+              autofocus: true,
               maxLines: maxLines != null ? maxLines : 1,
               keyboardType: TextInputType.text,
               style: TextStyle(color: Colors.white, fontFamily: "NotoSans"),
@@ -183,7 +182,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   Future<void> saveMusicRequest() async {
     Map<String, dynamic> music = new Map<String, dynamic>();
     Map<String, dynamic> snippet = _videoInfo["items"][0]["snippet"];
-    music["thumbnailUrl"] = snippet['thumbnails']['medium']['url'];
+    music["thumbnailUrl"] = snippet['thumbnails']['maxres']['url'];
     music["title"] = snippet["title"];
     music["description"] = snippet["description"];
     music["publishedAt"] = snippet["publishedAt"].split("T")[0];
@@ -228,13 +227,17 @@ class UploadMusicPageState extends State<UploadMusicPage> {
   Widget build(BuildContext context) {
     return Container(
         decoration: BoxDecoration(gradient: LinearGradient(
+            colors: [
+              Color.fromRGBO(20, 23, 41, 1),
+              Color.fromRGBO(50, 47, 61, 1),
+              Color.fromRGBO(50, 67, 81, 1),
+              Color.fromRGBO(50, 87, 101, 1),
+            ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [
-              Color.fromRGBO(27, 30, 48, 1),
-              Color.fromRGBO(53, 50, 61, 1),
-            ])),
+            tileMode: TileMode.clamp)),
         child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 15.0,

@@ -234,6 +234,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     return Scaffold(
       backgroundColor: Color.fromRGBO(10, 10, 15, 1),
         body: Material(
+          color: Colors.black,
       child: Stack(children: [
         Positioned(
             top: MediaQuery.of(context).size.height * .02,
