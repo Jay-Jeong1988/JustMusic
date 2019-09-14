@@ -8,6 +8,11 @@ class Singleton {
   User user;
   int widgetLayers = 1;
   bool removeNavbar = false;
+  Map<String, dynamic> tutorialStatus = {
+    "playPage": true,
+    "homePage": true,
+    "uploadMusicPage": true
+  };
 
   factory Singleton() {
     return _singleton;

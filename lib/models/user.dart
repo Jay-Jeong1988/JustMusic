@@ -4,7 +4,7 @@ class User {
   final String id;
   final String accountId;
   final String password;
-  final String nickname;
+   String nickname;
   final ContactInfo contactInfo;
   final Profile profile;
   final followers;
@@ -21,7 +21,7 @@ class User {
     print("new user instance is created");
   }
 
-  factory User.fromJson(Map<String, dynamic> user) {
+  factory User.fromDecodedJson(Map<String, dynamic> user) {
     return User(
       id: user['_id'],
       accountId: user['accountId'],

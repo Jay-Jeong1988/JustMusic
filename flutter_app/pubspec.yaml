@@ -1,5 +1,5 @@
-name: JustMusic
-description: Simplest random youtube music player
+name: flutter_app
+description: A new Flutter application.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -11,70 +11,29 @@ description: Simplest random youtube music player
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.0.0+1
+version: 1.0.0+1
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: 0.4.0+8
-  firebase_auth: 0.14.0+2
-  firebase_storage: 3.0.4
-
-  http: ^0.12.0+2
-
-  flutter_secure_storage: 3.2.1+1
-
-  geolocator: 5.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
-  youtube_player_flutter: 4.1.0
-
-  device_info: 0.4.0+2
-
-  shared_preferences: 0.5.3+4
-
-  fluttertoast: 3.1.0
-
-  dotted_border: 1.0.2
-
-  image_cropper: 1.0.2
-
-  image_picker: 0.6.0+17
-
-  flutter_launcher_icons:
-
-  flutter_svg: ^0.14.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-flutter_icons:
-  image_path: assets/images/play.png
-  android: true
-  ios: false
 
 # For information on the generic Dart part of this file, see the
-# following page: https://www.dartlang.org/tools/pub/pubspec
+# following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
-  fonts:
-    - family: NotoSans
-      fonts:
-        - asset: assets/fonts/NotoSans-Regular.ttf
-    - family: BalooChettan
-      fonts:
-        - asset: assets/fonts/BalooChettan-Regular.ttf
-    - family: PermanentMarker
-      fonts:
-        - asset: assets/fonts/PermanentMarker-Regular.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -85,15 +44,12 @@ flutter:
   # assets:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
-  assets:
-    - assets/images/
-    - assets/videos/
-    - ak.json
+
   # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.io/assets-and-images/#resolution-aware.
+  # https://flutter.dev/assets-and-images/#resolution-aware.
 
   # For details regarding adding assets from package dependencies, see
-  # https://flutter.io/assets-and-images/#from-packages
+  # https://flutter.dev/assets-and-images/#from-packages
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
@@ -113,4 +69,4 @@ flutter:
   #         weight: 700
   #
   # For details regarding fonts from package dependencies,
-  # see https://flutter.io/custom-fonts/#from-packages
+  # see https://flutter.dev/custom-fonts/#from-packages

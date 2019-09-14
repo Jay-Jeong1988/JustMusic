@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:JustMusic/global_components/AK.dart';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/utils/image_uploader.dart';
@@ -41,6 +44,9 @@ class ProfilePageState extends State<ProfilePage>
   bool _isRepeatOn = false;
   bool _isRepeatAllOn = false;
   List<dynamic> _myPlayLists = [];
+  String _nickname = '';
+  final _storage = FlutterSecureStorage();
+  bool _isValidationError = false;
 
   void initState() {
     super.initState();
@@ -70,7 +76,8 @@ class ProfilePageState extends State<ProfilePage>
         });
       });
     if (_singleton.user != null) {
-      _fetchMyPosts = MusicApi.getMyPosts(_singleton.user.id, _myPostsLastIndex);
+      _fetchMyPosts =
+          MusicApi.getMyPosts(_singleton.user.id, _myPostsLastIndex);
       _fetchLikedMusic =
           MusicApi.getVideosFor("likes", _singleton.user.id, _myLikesLastIndex);
 
@@ -89,15 +96,21 @@ class ProfilePageState extends State<ProfilePage>
 
   void lazyLoadVideos(index) {
     var lists = [_myPosts, _myLikes, _myBlocks];
-    var fetchMethods = [_fetchMyPosts, _fetchLikedMusic, MusicApi.getVideosFor("blocks", _singleton.user.id, _myBlocksLastIndex)];
+    var fetchMethods = [
+      _fetchMyPosts,
+      _fetchLikedMusic,
+      MusicApi.getVideosFor("blocks", _singleton.user.id, _myBlocksLastIndex)
+    ];
 
     if (lists[index].isEmpty) {
       fetchMethods[index].then((res) {
         setState(() {
           lists[index]..addAll(res["posts"]);
-          if (index == 0) _myPostsLastIndex+=10;
-          else if (index == 1) _myLikesLastIndex+=10;
-          else if (index == 2) _myBlocksLastIndex+=10;
+          if (index == 0)
+            _myPostsLastIndex += 10;
+          else if (index == 1)
+            _myLikesLastIndex += 10;
+          else if (index == 2) _myBlocksLastIndex += 10;
 
           if (res["count"] != null) {
             if (index == 0)
@@ -122,8 +135,10 @@ class ProfilePageState extends State<ProfilePage>
             new FlatButton(
               child: new Text("Yes", style: TextStyle(fontSize: 20)),
               onPressed: () {
-                MusicApi.perform("unblock", _singleton.user.id, musicId).then((result) {
-                  MusicApi.getVideosFor("blocks", _singleton.user.id, 0).then((result) {
+                MusicApi.perform("unblock", _singleton.user.id, musicId)
+                    .then((result) {
+                  MusicApi.getVideosFor("blocks", _singleton.user.id, 0)
+                      .then((result) {
                     setState(() {
                       _myBlocks = result["posts"];
                       _myBlocksLastIndex = 10;
@@ -157,7 +172,8 @@ class ProfilePageState extends State<ProfilePage>
         });
       } else if (_currentTabIndex == 1 &&
           _myLikes.length < _myLikesTotalCountInDB) {
-        MusicApi.getVideosFor('likes', _singleton.user.id, _myLikesLastIndex).then((res) {
+        MusicApi.getVideosFor('likes', _singleton.user.id, _myLikesLastIndex)
+            .then((res) {
           setState(() {
             _myLikes.addAll(res["posts"]);
             _myLikesLastIndex += 10;
@@ -268,8 +284,9 @@ class ProfilePageState extends State<ProfilePage>
                                                   color: Color.fromRGBO(
                                                       255, 0, 0, 1),
                                                   iconSize: 50,
-                                                  onPressed: () => _unblockVideoDialog(
-                                                      items[index]["_id"])))
+                                                  onPressed: () =>
+                                                      _unblockVideoDialog(
+                                                          items[index]["_id"])))
                                           : Container()
                                 ]),
                               )),
@@ -280,7 +297,8 @@ class ProfilePageState extends State<ProfilePage>
                                     InkWell(
                                         onTap: () {
                                           if (type == "myBlocks")
-                                            _unblockVideoDialog(items[index]["_id"]);
+                                            _unblockVideoDialog(
+                                                items[index]["_id"]);
                                           else
                                             setState(() {
                                               _currentlySelectedPlayList =
@@ -331,15 +349,14 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
-
   Widget _youtubePlayer() {
     return YoutubePlayer(
       context: context,
-      videoId: YoutubePlayer.convertUrlToId(_currentlySelectedPlayList
-          .isNotEmpty &&
-          _currentlySelectedPlayList[_currentlyPlayingIndex] != null
-          ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
-          : "https://youtu.be/HoXNpjUOx4U"),
+      videoId: YoutubePlayer.convertUrlToId(
+          _currentlySelectedPlayList.isNotEmpty &&
+                  _currentlySelectedPlayList[_currentlyPlayingIndex] != null
+              ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
+              : "https://youtu.be/HoXNpjUOx4U"),
       flags: YoutubePlayerFlags(
         disableDragSeek: true,
         autoPlay: true,
@@ -380,16 +397,15 @@ class ProfilePageState extends State<ProfilePage>
           if (_controller.value.playerState == PlayerState.ENDED) {
             _isRepeatOn
                 ? _controller.cue()
-                : _currentlyPlayingIndex <
-                _currentlySelectedPlayList.length - 1
-                ? setState(() {
-              _currentlyPlayingIndex += 1;
-            })
-                : _isRepeatAllOn
-                ? setState(() {
-              _currentlyPlayingIndex = 0;
-            })
-                : _controller.pause();
+                : _currentlyPlayingIndex < _currentlySelectedPlayList.length - 1
+                    ? setState(() {
+                        _currentlyPlayingIndex += 1;
+                      })
+                    : _isRepeatAllOn
+                        ? setState(() {
+                            _currentlyPlayingIndex = 0;
+                          })
+                        : _controller.pause();
           }
           if (_controller.value.playerState == PlayerState.CUED) {
             _controller.play();
@@ -398,8 +414,8 @@ class ProfilePageState extends State<ProfilePage>
             print("Error: ${_controller.value.errorCode}");
             if (_controller.value.errorCode == 150) {
               setState(() {
-                _currentlySelectedPlayList[_currentlyPlayingIndex]
-                ['videoUrl'] = "https://youtu.be/HoXNpjUOx4U";
+                _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl'] =
+                    "https://youtu.be/HoXNpjUOx4U";
               });
             }
           }
@@ -408,23 +424,23 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
-  List<Widget> _utilButtonsForPlayer(){
+  List<Widget> _utilButtonsForPlayer() {
     return [
       Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.width * .56,
-        foregroundDecoration: _isPaused
-            ? BoxDecoration(color: Colors.black45)
-            : BoxDecoration(),
+        foregroundDecoration:
+            _isPaused ? BoxDecoration(color: Colors.black45) : BoxDecoration(),
       ),
       Positioned(
           top: MediaQuery.of(context).size.width * .56 * .5 - 30,
           left: MediaQuery.of(context).size.width * .5 - 150,
-          child: _currentlySelectedPlayList.isNotEmpty ?
-          SaveToPlayListButton(
-              currentlyPlaying: _currentlySelectedPlayList[_currentlyPlayingIndex],
-              saveIcon: Icon(Icons.archive, size: 50, color: Colors.white)
-          ) : Container()),
+          child: _currentlySelectedPlayList.isNotEmpty
+              ? SaveToPlayListButton(
+                  currentlyPlaying:
+                      _currentlySelectedPlayList[_currentlyPlayingIndex],
+                  saveIcon: Icon(Icons.archive, size: 50, color: Colors.white))
+              : Container()),
       Positioned(
           top: MediaQuery.of(context).size.width * .56 * .5 - 30,
           left: MediaQuery.of(context).size.width * .5 - 90,
@@ -499,10 +515,7 @@ class ProfilePageState extends State<ProfilePage>
     return Positioned(
         top: MediaQuery.of(context).size.width * .56 * .1,
         right: rightPosition,
-        child: Container(
-            child: Container(
-              child: repeatIcons[repeatType]
-            )));
+        child: Container(child: Container(child: repeatIcons[repeatType])));
   }
 
   Widget _tabBar() {
@@ -510,127 +523,194 @@ class ProfilePageState extends State<ProfilePage>
         height: 50,
         child: TabBar(
           controller: _tabController,
-          indicatorColor:
-          Color.fromRGBO(247, 221, 68, 1),
+          indicatorColor: Color.fromRGBO(247, 221, 68, 1),
           unselectedLabelColor: Colors.white54,
           tabs: [
             Tab(
-                child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-                    children: [
-                      Text("My Posts "),
-                      _currentTabIndex == 0
-                          ? Text(
-                          "$_myPostsTotalCountInDB",
-                          style: TextStyle(
-                              color: Color.fromRGBO(
-                                  247, 221, 68, 1)))
-                          : Container()
-                    ])),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text("My Posts "),
+              _currentTabIndex == 0
+                  ? Text("$_myPostsTotalCountInDB",
+                      style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
+                  : Container()
+            ])),
             Tab(
-                child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-                    children: [
-                      Text("My Likes "),
-                      _currentTabIndex == 1
-                          ? Text(
-                          "$_myLikesTotalCountInDB",
-                          style: TextStyle(
-                              color: Color.fromRGBO(
-                                  247, 221, 68, 1)))
-                          : Container()
-                    ])),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text("My Likes "),
+              _currentTabIndex == 1
+                  ? Text("$_myLikesTotalCountInDB",
+                      style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
+                  : Container()
+            ])),
             Tab(
-                child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-                    children: [
-                      Text("Blocked "),
-                      _currentTabIndex == 2
-                          ? Text(
-                          "$_myBlocksTotalCountInDB",
-                          style: TextStyle(
-                              color: Color.fromRGBO(
-                                  247, 221, 68, 1)))
-                          : Container()
-                    ])),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text("Blocked "),
+              _currentTabIndex == 2
+                  ? Text("$_myBlocksTotalCountInDB",
+                      style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
+                  : Container()
+            ])),
           ],
         ));
   }
 
-  Widget _profile(){
-    return Container(
-        height: MediaQuery.of(context).size.height *
-            0.255 -
-            60,
-        child: Row(
-            crossAxisAlignment:
-            CrossAxisAlignment.center,
-            children: [
-              Container(
-                  width: MediaQuery.of(context)
-                      .size
-                      .width *
-                      .4,
-                  child: Center(
-                      child: GestureDetector(onTap: ()async{
-                        var result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (BuildContext context) => ImageCapture(navigatedFrom: "profileImage")),
-                        );
-                        if (result != null) {
-                          UserApi.updateProfileImage(_singleton.user.id, result).then((r){
-                            setState((){
-                              _singleton.user.profile.pictureUrl = result;
-                            });
-                          });
-                        }
-                      },child: Container(
-                          width: MediaQuery.of(context)
-                              .size
-                              .height *
-                              .14,
-                          height: MediaQuery.of(context)
-                              .size
-                              .height *
-                              .14,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(_singleton.user.profile.pictureUrl ?? ''),
-                              fit: BoxFit.cover,
-                            ),
-                              shape:
-                              BoxShape.circle,
-                              color: Color.fromRGBO(
-                                  70, 70, 80, 1)),
-                          child: _singleton.user.profile.pictureUrl != null ?
-                               Container()
-                          : IconButton(
-                              icon: Icon(Icons.photo_camera, color: Colors.white70),
-                              iconSize: 35,
-                              onPressed: () {
+  _setCustomImage(profileOrBanner) async {
+    var result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (BuildContext context) =>
+              ImageCapture(navigatedFrom: profileOrBanner)),
+    );
+    if (result != null) {
+      profileOrBanner == "profileImage"
+          ? UserApi.updateProfileImage(_singleton.user.id, result).then((r) {
+              setState(() {
+                _singleton.user.profile.pictureUrl = result;
+              });
+            })
+          : UserApi.updateBannerImage(_singleton.user.id, result).then((r) {
+              setState(() {
+                _singleton.user.profile.bannerImageUrl = result;
+              });
+            });
+    }
+  }
 
-                              }))))),
-              Container(
-                  child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
-                      children: [
-                        Container(
-                            child: Text(
-                                _singleton.user != null
-                                    ? _singleton.user.nickname
-                                    : "",
-                                style: TextStyle(
-                                    fontFamily:
-                                    "NotoSans",
-                                    fontSize: 18,
-                                    color:
-                                    Colors.white))),
+  Future<dynamic> _storeKey() async{
+    await AKLoader(akPath: "ak.json").load().then((AK ak){
+      _storage.write(key: "ak", value: ak.apiKey).catchError((error){
+        print(error);
+      });
+    });
+  }
+
+  Widget _profile() {
+    return Container(
+        height: MediaQuery.of(context).size.height * 0.255 - 60,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+              width: MediaQuery.of(context).size.width * .4,
+              child: Center(
+                  child: GestureDetector(
+                      onTap: () {
+                        _setCustomImage("profileImage");
+                      },
+                      child: Container(
+                          width: MediaQuery.of(context).size.height * .14,
+                          height: MediaQuery.of(context).size.height * .14,
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: NetworkImage(
+                                    _singleton.user.profile.pictureUrl ?? ''),
+                                fit: BoxFit.cover,
+                              ),
+                              shape: BoxShape.circle,
+                              color: Color.fromRGBO(70, 70, 80, 1)),
+                          child: _singleton.user.profile.pictureUrl != null
+                              ? Container()
+                              : IconButton(
+                                  icon: Icon(Icons.photo_camera,
+                                      color: Colors.white70),
+                                  iconSize: 35,
+                                  onPressed: () {
+                                    _setCustomImage("profileImage");
+                                  }))))),
+          Container(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                Container(
+                    child: Row(children: [
+                  Container(
+                      width: MediaQuery.of(context).size.width * .45,
+                      child: Text(
+                          _singleton.user != null
+                              ? _singleton.user.nickname
+                              : "",
+                          style: TextStyle(
+                              fontFamily: "NotoSans",
+                              fontSize: 18,
+                              color: Colors.white))),
+                  IconButton(
+                      padding: EdgeInsets.all(0),
+                      icon: Icon(Icons.edit),
+                      color: Colors.white,
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('New Nickname'),
+                                content: SingleChildScrollView(
+                                    child: Container(
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                      Flexible(
+                                          child: Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 20),
+                                              child: TextField(
+                                                decoration: InputDecoration(
+                                                    hintText: "Nickname"),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _nickname = value;
+                                                  });
+                                                },
+                                              ))),
+                                              _isValidationError ? Text("Nickname is too long. \nMaximum length is 20 characters.",
+                                                  style: TextStyle(
+                                                      color: Colors.redAccent,
+                                                      fontSize: 12.0
+                                                  ))
+                                                  :
+                                                  Container()
+                                    ]))),
+                                actions: <Widget>[
+                                  new FlatButton(
+                                      child: new Text('CONFIRM'),
+                                      onPressed: (){
+                                        UserApi.updateNickname(_singleton.user.id, _nickname).then((res){
+                                          if(res.statusCode == 200) {
+                                            setState(() {
+                                              _singleton.user.nickname = _nickname;
+                                              Map<String, dynamic> decodedResponse = jsonDecode(
+                                                  res.body);
+                                              _storage.deleteAll().then((result) {
+                                                _storeKey();
+                                                _storage.write(key: "user",
+                                                    value: jsonEncode(decodedResponse));
+                                              }).catchError((error) {
+                                                print(error);
+                                              });
+                                            });
+                                          }else{
+                                            setState(() {
+                                              _isValidationError = true;
+                                            });
+                                          }
+                                          Navigator.of(context).pop();
+                                        });
+                                      }),
+                                  new FlatButton(
+                                    child: new Text('CANCEL'),
+                                    onPressed: () {
+                                      setState(() {
+                                        _nickname = '';
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ],
+                              );
+                            });
+                      })
+                ])),
 //                                                Container(
 //                                                    child: Text(
 //                                                        _singleton.user != null
@@ -642,32 +722,21 @@ class ProfilePageState extends State<ProfilePage>
 //                                                                "NotoSans",
 //                                                            color:
 //                                                                Colors.white))),
-                        Container(
-                            child: Row(
-                                mainAxisSize:
-                                MainAxisSize.min,
-                                children: [
-                                  Text("$totalLikes Likes ",
-                                      style: TextStyle(
-                                          fontSize: 13,
-                                          fontFamily:
-                                          "BalooChettan",
-                                          color: Color
-                                              .fromRGBO(
-                                              220,
-                                              100,
-                                              128,
-                                              1))),
-                                  Text("on my posts",
-                                      style: TextStyle(
-                                          fontSize: 13,
-                                          fontFamily:
-                                          "NotoSans",
-                                          color:
-                                          Colors.white))
-                                ]))
-                      ])),
-            ]));
+                Container(
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text("$totalLikes Likes ",
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontFamily: "BalooChettan",
+                          color: Color.fromRGBO(220, 100, 128, 1))),
+                  Text("on my posts",
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontFamily: "NotoSans",
+                          color: Colors.white))
+                ]))
+              ])),
+        ]));
   }
 
   @override
@@ -680,19 +749,15 @@ class ProfilePageState extends State<ProfilePage>
     Widget displayScreen = Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.width * .56,
-        child: Stack(children: [_youtubePlayer()]
-            ..addAll(_utilButtonsForPlayer().map((widget){
-              return _isPaused ? widget : Container();
-            }))
-            ..addAll([
-              _isRepeatOn
-                  ? _repeatStatus("repeatOne", 30.0)
-                  : Container(),
-              _isRepeatAllOn
-                  ? _repeatStatus("repeatAll", 10.0)
-                  : Container(),
-            ])
-        ));
+        child: Stack(
+            children: [_youtubePlayer()]
+              ..addAll(_utilButtonsForPlayer().map((widget) {
+                return _isPaused ? widget : Container();
+              }))
+              ..addAll([
+                _isRepeatOn ? _repeatStatus("repeatOne", 30.0) : Container(),
+                _isRepeatAllOn ? _repeatStatus("repeatAll", 10.0) : Container(),
+              ])));
     return FutureBuilder(
         future: _fetchMyPosts,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -704,27 +769,18 @@ class ProfilePageState extends State<ProfilePage>
                     _musicActivated
                         ? displayScreen
                         : GestureDetector(
-                      onTap: () async {
-                        var result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (BuildContext context) => ImageCapture(navigatedFrom: "banner")),
-                        );
-                        if (result != null) {
-                          UserApi.updateBannerImage(_singleton.user.id, result).then((r){
-                            setState((){
-                              _singleton.user.profile.bannerImageUrl = result;
-                            });
-                          });
-                        }
-                      },
-                        child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.width * .56,
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image: NetworkImage(_singleton.user.profile.bannerImageUrl ??
-                                        "https://ik.imagekit.io/kitkitkitit/tr:q-100,ar-16-9,w-400/default_bg.jpg"),
-                                    fit: BoxFit.cover)))),
+                            onTap: () {
+                              _setCustomImage("banner");
+                            },
+                            child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: MediaQuery.of(context).size.width * .56,
+                                decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                        image: NetworkImage(_singleton
+                                                .user.profile.bannerImageUrl ??
+                                            "https://ik.imagekit.io/kitkitkitit/tr:q-100,ar-16-9,w-400/default_bg.jpg"),
+                                        fit: BoxFit.cover)))),
                     Container(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height * 0.255,
@@ -740,12 +796,9 @@ class ProfilePageState extends State<ProfilePage>
                         child: Stack(children: [
                           Column(
                               mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                _profile(),
-                                _tabBar()
-                              ]),
+                              children: [_profile(), _tabBar()]),
                           Positioned(
-                              top: 0,
+                              top: -10,
                               right: 0,
                               child: RaisedButton.icon(
                                 elevation: 0,

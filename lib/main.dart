@@ -24,7 +24,8 @@ class App extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'JustMusic',
-        theme: ThemeData(canvasColor: Color.fromRGBO(220, 220, 220, 1.0),
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.transparent
         ),
         home: AppScreen());
   }
@@ -54,6 +55,12 @@ class _AppScreenState extends State<AppScreen> {
     });
   }
 
+  Future<void> _loadTutorialStatusFromDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var tutorialStatus = prefs.getString("tutorialStatus");
+    if(tutorialStatus != null) _singleton.tutorialStatus = jsonDecode(tutorialStatus);
+    print("tutorialStataus: ${_singleton.tutorialStatus}");
+  }
 
   @override
   void dispose() {
@@ -62,6 +69,7 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   void initState() {
+    _loadTutorialStatusFromDisk();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.initState();
     Api(); //create an Api instance to determine which host the app should use
@@ -73,7 +81,7 @@ class _AppScreenState extends State<AppScreen> {
                 decodedUserJson["contactInfo"]["phoneNumber"])
                 .then((isValidUser) {
               if (isValidUser == true) {
-                _singleton.user = User.fromJson(jsonDecode(userJson));
+                _singleton.user = User.fromDecodedJson(jsonDecode(userJson));
                 print("I am ${_singleton.user.nickname} (from storage)");
               } else {
                 _singleton.user = null;
@@ -91,7 +99,7 @@ class _AppScreenState extends State<AppScreen> {
     loadCountryFromDisk = _loadCountryFromDisk();
     loadCountryFromDisk.then((countryFromDisk){
       if (countryFromDisk != null) {
-        userCountry = Country.fromJson(jsonDecode(countryFromDisk));
+        userCountry = Country.fromDecodedJson(jsonDecode(countryFromDisk));
       }
       else {
         setState((){
@@ -161,11 +169,10 @@ class _AppScreenState extends State<AppScreen> {
                       getSelectedPageFromChild: getSelectedPageFromChild),
             ])));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
-            return
-              Center(child:
-              Container(
-                  child: Logo()
-              ));
+            return Container(
+              width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: Logo());
           } else if (snapshot.hasError) {
             return Center(
                 child: Column(children: <Widget>[

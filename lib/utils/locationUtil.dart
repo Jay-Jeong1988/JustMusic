@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 import '../models/country.dart';
 
@@ -9,7 +11,17 @@ Future<Country> getCountryInstance() async {
   Country country;
   try {
     currentLocation = await geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best);
+        desiredAccuracy: LocationAccuracy.best).timeout(Duration(seconds: 10)).catchError((error) {
+      if (error is TimeoutException) {
+        Geolocator().getLastKnownPosition().then((position) {
+          print("Last position is loaded due to failing current position.");
+        }).catchError((error) {
+          print(error);
+        });
+      } else {
+        print(error);
+      }
+    });
     placemark = await geolocator.placemarkFromPosition(currentLocation);
   } catch (e) {
     print(e);

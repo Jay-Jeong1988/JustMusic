@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'dart:io';
 import 'package:device_info/device_info.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class Api {
   static String host = "34.222.61.255";
@@ -111,6 +113,22 @@ class UserApi extends Api{
     }
     print('Response status: ${response.statusCode}');
     print("${response.body}");
+  }
+
+  static Future<Response> updateNickname(userId, nickname) async {
+    Map<String, String> queryParam = {"nickname": nickname};
+    String path = "/$_userPath/$userId/updateNickname";
+    Response response;
+    Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
+    print(uri);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    print('Response status: ${response.statusCode}');
+    print("${response.body}");
+    return response;
   }
 }
 

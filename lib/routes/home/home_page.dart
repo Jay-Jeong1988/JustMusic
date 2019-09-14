@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/singleton.dart';
@@ -6,6 +7,8 @@ import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
 
@@ -171,6 +174,78 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: _pageBuilder());
+        body: Stack(children: [
+          _pageBuilder(),
+          _singleton.tutorialStatus["homePage"] ? Positioned.fill(child: HomePageTutorialScreen()) : Container()
+        ])
+    );
+  }
+}
+
+class HomePageTutorialScreen extends StatefulWidget {
+  createState() => HomePageTutorialScreenState();
+}
+
+class HomePageTutorialScreenState extends State<HomePageTutorialScreen> {
+  Singleton _singleton = Singleton();
+  bool _isFinished = false;
+
+  Future<void> _saveTutorialStatusToDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("tutorialStatus", jsonEncode(_singleton.tutorialStatus));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isFinished ? Container() : GestureDetector(
+        onTap: (){
+          _singleton.tutorialStatus["homePage"] = false;
+          _saveTutorialStatusToDisk().then((v){
+            setState(() {
+              _isFinished = true;
+            });
+          });
+        },
+        child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(
+                color: Colors.black87
+            ),
+            child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Stack(children: [
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 130,
+                      left: MediaQuery.of(context).size.width * .9 - 280,
+                      child: Container(
+                          width: 210,
+                          height: 50,
+                          child: Text("Slide up/down\n to skip videos .", style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: "PermanentMarker"))
+                      )
+                  ),
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 220,
+                      left: MediaQuery.of(context).size.width * .9 - 120,
+                      child: Container(
+                          width: 30,
+                          height: 70,
+                          child: SvgPicture.asset("assets/images/vertical-resizing-option.svg",
+                            semanticsLabel: "A white up and down arrow",
+                            fit: BoxFit.cover,
+                          )
+                      )
+                  ),
+                  Positioned(
+                      left: MediaQuery.of(context).size.width * .5 - 70,
+                      top: MediaQuery.of(context).size.height * .75,
+                      child: Container(
+                          width: 170,
+                          height: 30,
+                          child: Text("Tap to dismiss", style: TextStyle(color: Colors.white70, fontSize: 20, fontFamily: "PermanentMarker"))
+                      )
+                  ),
+                ])
+            )));
   }
 }

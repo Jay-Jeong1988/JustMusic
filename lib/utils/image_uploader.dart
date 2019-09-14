@@ -66,7 +66,16 @@ class ImageCaptureState extends State<ImageCapture> {
   }
 
   Future<void> _pickAndCropImage(ImageSource source) async {
-    File selected = await ImagePicker.pickImage(source: source);
+    var sizes = {
+      "playlist": { "maxWidth": 700.0, "maxHeight": 933.0 },
+      "profileImage" : { "maxWidth": 300.0, "maxHeight": 300.0 },
+      "banner": { "maxWidth": 700.0, "maxHeight": 525.0 }
+    };
+    File selected = await ImagePicker.pickImage(
+        source: source,
+        maxWidth: sizes[widget.navigatedFrom]["maxWidth"],
+        maxHeight: sizes[widget.navigatedFrom]["maxHeight"]
+    );
     if (selected != null) {
       File cropped = await ImageCropper.cropImage(
           ratioX: imageRatio["x"],

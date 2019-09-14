@@ -2,15 +2,13 @@
 
 Simplest random youtube music player
 
-## Getting Started
+## 0.0.5 Release Note
 
-This project is a starting point for a Flutter application.
+* fixed a bug for getting current location by calling last position after timeout delay.
+* changed the app launching icon
+* image compression for performance optimization
+* nickname is now editable on profile page
+* added tutorial screen
+* display publisher comment on home page
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.

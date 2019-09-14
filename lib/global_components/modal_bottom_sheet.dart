@@ -18,8 +18,11 @@ void setModalBottomSheet(context) {
       padding: EdgeInsets.only(top: 26.0, bottom: 26.0, left: 80, right: 80),
       child: Center(
           child: Text(
-              "By signing up, you confirm that you agree to our Terms of Use"
-                  "and have read and understood our Privacy Policy.",
+//              "By signing up, you confirm that you agree to our Terms of Use "
+//                  "and have read and understood our Privacy Policy."
+          "This app is free for all users. "
+              "No user data will be used in any way."
+              ,
               softWrap: true,
               style: TextStyle(fontSize: 10),
               textAlign: TextAlign.center)));
@@ -94,7 +97,7 @@ void setModalBottomSheet(context) {
                 color: Colors.pink[400],
                 borderRadius: BorderRadius.all(Radius.circular(3.0))),
             child: Center(
-                child: Text("Sign Up With Phone Number",
+                child: Text("Easy Sign Up with Phone Number",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white,
@@ -112,10 +115,11 @@ void setModalBottomSheet(context) {
       padding: EdgeInsets.only(top: 0.0, bottom: 0.0),
       child:
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        IconButton(
-            iconSize: 20.0,
-            icon: Icon(Icons.info_outline),
-            onPressed: () {}),
+//        IconButton(
+//            iconSize: 20.0,
+//            icon: Icon(Icons.info_outline),
+//            onPressed: () {}),
+      Container(),
         IconButton(
             iconSize: 20.0,
             icon: Icon(Icons.close),
@@ -141,10 +145,10 @@ void setModalBottomSheet(context) {
                 _icons,
                 _textSection,
                 _signupButton,
-                _orDivider,
-                _oAuth,
+//                _orDivider,
+//                _oAuth,
                 _agreeNotice,
-                _login
+//                _login
               ],
             )));
       });

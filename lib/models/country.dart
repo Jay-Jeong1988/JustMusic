@@ -11,7 +11,7 @@ class Country {
     this.isoCode,
   });
 
-  factory Country.fromJson(Map<String, dynamic> json) {
+  factory Country.fromDecodedJson(Map<String, dynamic> json) {
     return Country(
          name: json["name"],
       dialingCode: json["dialingCode"],

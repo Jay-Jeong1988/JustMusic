@@ -4,6 +4,8 @@ import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -59,7 +61,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
   void _getVideoIdAndCallApi(String receivedUri) {
     var uri = Uri.parse(receivedUri);
-
     void _setVideoInfo(videoId){
       getYoutubeObject(_getYoutubeV3ApiUrl(_ak, videoId)).then((info) {
         setState(() {
@@ -110,7 +111,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
         child: Container(
             padding: padding,
             child: TextField(
-              autofocus: true,
+              autofocus: !_singleton.tutorialStatus["uploadMusicPage"],
               maxLines: maxLines != null ? maxLines : 1,
               keyboardType: TextInputType.text,
               style: TextStyle(color: Colors.white, fontFamily: "NotoSans"),
@@ -225,7 +226,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Stack(children: [Container(
         decoration: BoxDecoration(gradient: LinearGradient(
             colors: [
               Color.fromRGBO(20, 23, 41, 1),
@@ -237,7 +238,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
             end: Alignment.topCenter,
             tileMode: TileMode.clamp)),
         child: Scaffold(
-          backgroundColor: Colors.transparent,
         appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 15.0,
@@ -374,6 +374,99 @@ class UploadMusicPageState extends State<UploadMusicPage> {
                       maxLines: 3,
                       padding: EdgeInsets.fromLTRB(25, 10, 25, 90),
                       onChangeMethod: _getComment),
-                ])))));
+                ]))))),
+      _singleton.tutorialStatus["uploadMusicPage"] ? Positioned.fill(child: UploadMusicPageTutorialScreen()) : Container()
+    ]);
+  }
+}
+
+class UploadMusicPageTutorialScreen extends StatefulWidget {
+  createState() => UploadMusicPageTutorialScreenState();
+}
+
+class UploadMusicPageTutorialScreenState extends State<UploadMusicPageTutorialScreen> {
+  Singleton _singleton = Singleton();
+  bool _isFinished = false;
+
+  Future<void> _saveTutorialStatusToDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("tutorialStatus", jsonEncode(_singleton.tutorialStatus));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isFinished ? Container() : GestureDetector(
+        onTap: (){
+          _singleton.tutorialStatus["uploadMusicPage"] = false;
+          _saveTutorialStatusToDisk().then((v){
+            setState(() {
+              _isFinished = true;
+            });
+          });
+        },
+        child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(
+                color: Colors.black45
+            ),
+            child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Stack(children: [
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 75,
+                      left: MediaQuery.of(context).size.width * .9 - 280,
+                      child: Container(
+                          width: 210,
+                          height: 50,
+                          child: Text("1. Paste a copied link\n from Youtube app here.", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
+                      )
+                  ),
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 90,
+                      left: MediaQuery.of(context).size.width * .9 - 120,
+                      child: Container(
+                          width: 70,
+                          height: 70,
+                          child: SvgPicture.asset("assets/images/semicircular-up-arrow.svg",
+                            semanticsLabel: "A white curve up arrow",
+                            fit: BoxFit.cover,
+                            color: Colors.white
+                          )
+                      )
+                  ),
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 250,
+                      left: MediaQuery.of(context).size.width * .9 - 280,
+                      child: Container(
+                          width: 210,
+                          height: 50,
+                          child: Text("2. Choose suitable categories for the music", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
+                      )
+                  ),
+                  Positioned(
+                      top: MediaQuery.of(context).size.height * .1 + 270,
+                      left: MediaQuery.of(context).size.width * .9 - 80,
+                      child: Container(
+                          width: 40,
+                          height: 40,
+                          child: SvgPicture.asset("assets/images/curve-arrow.svg",
+                            semanticsLabel: "A white curve down arrow",
+                            fit: BoxFit.cover,
+                              color: Colors.white
+                          )
+                      )
+                  ),
+                  Positioned(
+                      left: MediaQuery.of(context).size.width * .5 - 70,
+                      top: MediaQuery.of(context).size.height * .75,
+                      child: Container(
+                          width: 170,
+                          height: 30,
+                          child: Text("Tap to dismiss", style: TextStyle(color: Colors.white70, fontSize: 20, fontFamily: "PermanentMarker"))
+                      )
+                  ),
+                ])
+            )));
   }
 }

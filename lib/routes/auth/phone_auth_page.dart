@@ -5,6 +5,7 @@ import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/create/upload_music_page.dart';
 import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
+import 'package:JustMusic/utils/slide_right_route.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -35,7 +36,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
     _getCountryFromStorage = _loadCountryFromDisk();
     _getCountryFromStorage.then((country){
       if (country != null) {
-        _selectedCountry = Country.fromJson(jsonDecode(country));
+        _selectedCountry = Country.fromDecodedJson(jsonDecode(country));
         print("selected country: ${_selectedCountry.name}");
       }
     });
@@ -68,7 +69,13 @@ class _PhoneAuthState extends State<PhoneAuth> {
         this.verificationId = verId;
       });
       print('Code has been sent');
-      smsCodeDialog(context);
+//      smsCodeDialog(context);
+      Navigator.push(
+          context,
+          SlideRightRoute(
+              rightToLeft: false,
+              page: SMSVerificationPage(verificationId: verificationId)
+              ));
     };
 
     final PhoneVerificationCompleted verificationSuccess =
@@ -106,65 +113,34 @@ class _PhoneAuthState extends State<PhoneAuth> {
         verificationFailed: verificationFailed);
   }
 
-  Future<bool> smsCodeDialog(BuildContext context) {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return new AlertDialog(
-            title: Text('Enter sms Code'),
-            content: TextField(
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                this.smsCode = value;
-              },
-            ),
-            contentPadding: EdgeInsets.all(10.0),
-            actions: <Widget>[
-              new FlatButton(
-                child: Text('Done'),
-                onPressed: () {
-                  signInWithPhoneNumber(this.smsCode);
-                },
-              )
-            ],
-          );
-        });
-  }
-
-  Future<void> signInWithPhoneNumber(String smsCode) async {
-    final AuthCredential credential = PhoneAuthProvider.getCredential(
-      verificationId: this.verificationId,
-      smsCode: smsCode,
-    );
-    final AuthResult authResult =
-        await FirebaseAuth.instance.signInWithCredential(credential);
-    final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
-//    final token = await user.getIdToken();
-    assert(authResult.user.uid == currentUser.uid);
-    print('signed into firebase: ${authResult.user}');
-
-    saveUserRequest(authResult.user);
-//    print('token: $token');
-  }
-
   Future<void> saveUserRequest(FirebaseUser user) async {
 
     UserApi.signUpRequest(user).then((response){
       Map<String, dynamic> decodedResponse = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        _storage.deleteAll().then((result){
-          _storeKey();
-          _storage.write(key: "user", value: response.body);
-        }).catchError((error){
-          print(error);
-        });
-        _singleton.user = User.fromJson(decodedResponse);
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) => AppScreen(navigatedPage:
-              _singleton.clicked == 3 ? ProfilePage() : _singleton.clicked == 1 ? UploadMusicPage() : PlayListsPage()
-              )),(_)=>false);
+        _singleton.user = User.fromDecodedJson(decodedResponse["user"]);
 
+        if (decodedResponse["isNew"]){
+          Navigator.push(
+              context,
+              SlideRightRoute(
+                  rightToLeft: false,
+                  page: NicknameCreationPage()
+              ));
+        }else {
+          _storage.deleteAll().then((result){
+            _storeKey();
+            _storage.write(key: "user", value: jsonEncode(decodedResponse["user"]));
+          }).catchError((error){
+            print(error);
+          });
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) =>
+                  AppScreen(navigatedPage:
+                  _singleton.clicked == 3 ? ProfilePage() : _singleton
+                      .clicked == 1 ? UploadMusicPage() : PlayListsPage()
+                  )), (_) => false);
+        }
       } else {
         FirebaseAuth.instance.signOut();
         print("validation error: ${decodedResponse["error"]}");
@@ -265,8 +241,10 @@ class _PhoneAuthState extends State<PhoneAuth> {
                                   top: 15.0, right: 8.0, bottom: 15.0),
                               decoration: BoxDecoration(),
                               child: Text(
-                                  "By signing up, you confirm that you agree to our Terms "
-                                      "of Use and have read and understood our Privacy Policy."
+//                                  "By signing up, you confirm that you agree to our Terms "
+//                                      "of Use and have read and understood our Privacy Policy."
+                                  "This app is free for all users. "
+                                      "No user data will be used in any way."
                                       " You will receive an SMS to confirm your phone number."
                                       " SMS fee may apply.",
                                   style: TextStyle(fontSize: 12.0))),
@@ -293,5 +271,190 @@ class _PhoneAuthState extends State<PhoneAuth> {
             ]));
       }
     });
+  }
+}
+
+
+class SMSVerificationPage extends StatefulWidget {
+  String verificationId;
+  SMSVerificationPage({Key key, @required this.verificationId});
+  SMSVerificationState createState() => SMSVerificationState();
+}
+
+class SMSVerificationState extends State<SMSVerificationPage> {
+  String _smsCode;
+  Singleton _singleton = Singleton();
+  final _storage = FlutterSecureStorage();
+
+  Future<dynamic> _storeKey() async{
+    await AKLoader(akPath: "ak.json").load().then((AK ak){
+      _storage.write(key: "ak", value: ak.apiKey).catchError((error){
+        print(error);
+      });
+    });
+  }
+
+  Future<void> signInWithPhoneNumber(String smsCode) async {
+    final AuthCredential credential = PhoneAuthProvider.getCredential(
+      verificationId: widget.verificationId,
+      smsCode: smsCode,
+    );
+    final AuthResult authResult =
+    await FirebaseAuth.instance.signInWithCredential(credential);
+    final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
+//    final token = await user.getIdToken();
+    assert(authResult.user.uid == currentUser.uid);
+
+    print('signed into firebase: ${authResult.user}');
+    saveUserRequest(authResult.user);
+//    print('token: $token');
+  }
+
+  Future<void> saveUserRequest(FirebaseUser user) async {
+    UserApi.signUpRequest(user).then((response){
+      Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        _singleton.user = User.fromDecodedJson(decodedResponse["user"]);
+
+        if (decodedResponse["isNew"]){
+          Navigator.push(
+              context,
+              SlideRightRoute(
+                  rightToLeft: false,
+                  page: NicknameCreationPage()
+              ));
+        }else {
+          _storage.deleteAll().then((result){
+            _storeKey();
+            _storage.write(key: "user", value: jsonEncode(decodedResponse["user"]));
+          }).catchError((error){
+            print(error);
+          });
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) =>
+                  AppScreen(navigatedPage:
+                  _singleton.clicked == 3 ? ProfilePage() : _singleton
+                      .clicked == 1 ? UploadMusicPage() : PlayListsPage()
+                  )), (_) => false);
+        }
+      } else {
+        FirebaseAuth.instance.signOut();
+        print("validation error: ${decodedResponse["error"]}");
+        print("Firebase user logged out");
+        throw Exception('Failed to save or load a user');
+      }
+    });
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+        body: Center(child: Container(
+                width: MediaQuery.of(context).size.width * .8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  Text("Enter SMS Code"),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    onChanged: (val){
+                      setState(() {
+                        _smsCode = val;
+                      });
+                    },
+                  ),
+                  FlatButton(
+                    child: Text('Done'),
+                    onPressed: () {
+                      signInWithPhoneNumber(_smsCode);
+                    },
+                  )
+                ]
+                ))));
+  }
+}
+
+class NicknameCreationPage extends StatefulWidget {
+  NicknameCreationPageState createState() => NicknameCreationPageState();
+}
+
+class NicknameCreationPageState extends State<NicknameCreationPage> {
+  String _nickname = "";
+  bool _isValidationError = false;
+  Singleton _singleton = Singleton();
+  final _storage = FlutterSecureStorage();
+
+  Future<dynamic> _storeKey() async{
+    await AKLoader(akPath: "ak.json").load().then((AK ak){
+      _storage.write(key: "ak", value: ak.apiKey).catchError((error){
+        print(error);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+        body: Center(child: Container(
+                width: MediaQuery.of(context).size.width * .8,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                  Text("Create Your Nickname"),
+                  TextField(
+                    onChanged: (val){
+                      setState(() {
+                        _nickname = val;
+                      });
+                    },
+                  ),
+                  _isValidationError ?
+                  Text("Nickname is too long. \nMaximum length is 20 characters.",
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12.0
+                      ))
+                      :
+                      Container(),
+                  RaisedButton(
+                    child: Text("Done"),
+                    onPressed: (){
+                      UserApi.updateNickname(_singleton.user.id, _nickname).then((res){
+                        if(res.statusCode == 200) {
+                          _singleton.user.nickname = _nickname;
+                          Map<String, dynamic> decodedResponse = jsonDecode(
+                              res.body);
+                          _storage.deleteAll().then((result) {
+                            _storeKey();
+                            _storage.write(key: "user",
+                                value: jsonEncode(decodedResponse));
+                          }).catchError((error) {
+                            print(error);
+                          });
+                          Navigator.pushAndRemoveUntil(context,
+                              MaterialPageRoute(builder: (context) =>
+                                  AppScreen(navigatedPage:
+                                  _singleton.clicked == 3
+                                      ? ProfilePage()
+                                      : _singleton
+                                      .clicked == 1
+                                      ? UploadMusicPage()
+                                      : PlayListsPage()
+                                  )), (_) => false);
+                        }else{
+                          setState(() {
+                            _isValidationError = true;
+                          });
+                        }
+                    });
+                    },
+                  )
+                ]
+                ))));
   }
 }

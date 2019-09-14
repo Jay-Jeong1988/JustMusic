@@ -78,7 +78,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
             },
             textColor: _isRepeatOn == false ? Colors.white30 : Colors.white,
             child: Column(
-                children: [Icon(Icons.repeat_one, size: 40), Text("Repeat")])));
+                children: [Icon(Icons.repeat_one, size: 40), Text("Repeat", style: TextStyle(fontSize: 12.0))])));
   }
 
   Widget _iconButton(name, statusVar) {
@@ -389,6 +389,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                                   fontSize: 10))),
                       Container(
                           child: Text("Channel: ${source["channelName"]}",
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontFamily: "NotoSans",
+                                  fontSize: 10))),
+                      Container(
+                          child: Text("Publisher Comment: ${source["userNote"] ?? "" }",
                               style: TextStyle(
                                   color: Colors.white70,
                                   fontFamily: "NotoSans",

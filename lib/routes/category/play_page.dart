@@ -34,7 +34,7 @@ class PlayPageState extends State<PlayPage> {
 
   @override
   Widget build(context) {
-    return Container(
+    return Stack(children: [Container(
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
             gradient:
@@ -50,7 +50,6 @@ class PlayPageState extends State<PlayPage> {
                 tileMode: TileMode.clamp)
         ),
         child: Scaffold(
-          backgroundColor: Colors.transparent,
       body: Stack(
         children: [Positioned(
           left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.width * 0.15,
@@ -116,6 +115,73 @@ class PlayPageState extends State<PlayPage> {
           )
         ]
         )
-    ));
+    )),
+      _singleton.tutorialStatus["playPage"] ? Positioned.fill(child: PlayPageTutorialScreen()) : Container()
+    ]);
+  }
+}
+
+class PlayPageTutorialScreen extends StatefulWidget {
+  createState() => PlayPageTutorialScreenState();
+}
+
+class PlayPageTutorialScreenState extends State<PlayPageTutorialScreen> {
+  Singleton _singleton = Singleton();
+  bool _isFinished = false;
+
+  Future<void> _saveTutorialStatusToDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("tutorialStatus", jsonEncode(_singleton.tutorialStatus));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isFinished ? Container() : GestureDetector(
+      onTap: (){
+        _singleton.tutorialStatus["playPage"] = false;
+        _saveTutorialStatusToDisk().then((v){
+          setState(() {
+            _isFinished = true;
+          });
+        });
+      },
+        child: Container(
+    width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+    color: Colors.black45
+    ),
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(children: [
+        Positioned(
+          top: MediaQuery.of(context).size.height * .1 + 13,
+          left: MediaQuery.of(context).size.width * .9 - 250,
+          child: Container(
+            width: 210,
+            height: 45,
+            child: Text("1. Select genres first  ->\n and come back .", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
+          )
+        ),
+        Positioned(
+            left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.width * 0.25,
+            top: MediaQuery.of(context).size.height * .5 - MediaQuery.of(context).size.width * 0.25,
+            child: Container(
+                width: 190,
+                height: 30,
+                child: Text("2. Play random music ! ", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
+            )
+        ),
+        Positioned(
+            left: MediaQuery.of(context).size.width * .5 - 70,
+            top: MediaQuery.of(context).size.height * .75,
+            child: Container(
+                width: 170,
+                height: 30,
+                child: Text("Tap to dismiss", style: TextStyle(color: Colors.white70, fontSize: 20, fontFamily: "PermanentMarker"))
+            )
+        ),
+      ])
+    )));
   }
 }
