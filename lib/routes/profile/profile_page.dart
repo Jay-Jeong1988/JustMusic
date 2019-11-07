@@ -531,7 +531,7 @@ class ProfilePageState extends State<ProfilePage>
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text("My Posts "),
               _currentTabIndex == 0
-                  ? Text("$_myPostsTotalCountInDB",
+                  ? Text("${_myPostsTotalCountInDB <= 999 ? _myPostsTotalCountInDB : 999}",
                       style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
                   : Container()
             ])),
@@ -540,7 +540,7 @@ class ProfilePageState extends State<ProfilePage>
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text("My Likes "),
               _currentTabIndex == 1
-                  ? Text("$_myLikesTotalCountInDB",
+                  ? Text("${_myLikesTotalCountInDB <= 999 ? _myLikesTotalCountInDB : 999}",
                       style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
                   : Container()
             ])),
@@ -549,7 +549,7 @@ class ProfilePageState extends State<ProfilePage>
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text("Blocked "),
               _currentTabIndex == 2
-                  ? Text("$_myBlocksTotalCountInDB",
+                  ? Text("${_myBlocksTotalCountInDB <= 999 ? _myBlocksTotalCountInDB : 999}",
                       style: TextStyle(color: Color.fromRGBO(247, 221, 68, 1)))
                   : Container()
             ])),

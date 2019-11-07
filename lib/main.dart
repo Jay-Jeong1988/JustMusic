@@ -12,6 +12,7 @@ import './models/country.dart';
 import './utils/locationUtil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'global_components/api.dart';
+import 'global_components/app_ads.dart';
 import 'global_components/singleton.dart';
 
 void main() {
@@ -69,6 +70,7 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   void initState() {
+
     _loadTutorialStatusFromDisk();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.initState();
@@ -161,12 +163,7 @@ class _AppScreenState extends State<AppScreen> {
                 child: Scaffold(
                 body: Stack(children: [
               currentPage,
-              widget.navigatedPage != null
-                  ? NavBar(
-                      getSelectedPageFromChild: getSelectedPageFromChild,
-                      currentPage: widget.navigatedPage)
-                  : NavBar(
-                      getSelectedPageFromChild: getSelectedPageFromChild),
+                  NavBar(getSelectedPageFromChild: getSelectedPageFromChild),
             ])));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(

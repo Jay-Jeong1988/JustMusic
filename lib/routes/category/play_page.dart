@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,12 +26,25 @@ class PlayPageState extends State<PlayPage> {
         _selectedCategories.addAll(selectedCategories);
       });
     });
+    _showAd();
+  }
+
+  void _showAd() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/6576702822');
+    AppAds.showBanner();
+    _singleton.adSize = "full";
   }
 
   _loadSelectedCategoriesFromDisk() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var categories = prefs.getString('selectedCategories');
     if (categories != null) return json.decode(categories);
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
   }
 
   @override
@@ -84,6 +99,7 @@ class PlayPageState extends State<PlayPage> {
                               _selectedCategories))));
               _singleton.widgetLayers+=1;
               _singleton.removeNavbar = true;
+              AppAds.hideBanner();
             },
           )
         )),
@@ -158,8 +174,8 @@ class PlayPageTutorialScreenState extends State<PlayPageTutorialScreen> {
           top: MediaQuery.of(context).size.height * .1 + 13,
           left: MediaQuery.of(context).size.width * .9 - 250,
           child: Container(
-            width: 210,
-            height: 45,
+            width: 240,
+            height: 55,
             child: Text("1. Select genres first  ->\n and come back .", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
           )
         ),
@@ -167,7 +183,7 @@ class PlayPageTutorialScreenState extends State<PlayPageTutorialScreen> {
             left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.width * 0.25,
             top: MediaQuery.of(context).size.height * .5 - MediaQuery.of(context).size.width * 0.25,
             child: Container(
-                width: 190,
+                width: 240,
                 height: 30,
                 child: Text("2. Play random music ! ", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
             )

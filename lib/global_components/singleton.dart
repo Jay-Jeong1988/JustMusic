@@ -13,6 +13,7 @@ class Singleton {
     "homePage": true,
     "uploadMusicPage": true
   };
+  String adSize;
 
   factory Singleton() {
     return _singleton;

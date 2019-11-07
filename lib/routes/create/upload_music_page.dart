@@ -68,7 +68,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           _videoInfo = info['pageInfo']['totalResults'] >= 1
               ? info
               : new Map<String, dynamic>();
-          print(_videoInfo);
+          print(_videoInfo["items"][0]["snippet"]["thumbnails"]);
         });
       });
     }
@@ -111,7 +111,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
         child: Container(
             padding: padding,
             child: TextField(
-              autofocus: !_singleton.tutorialStatus["uploadMusicPage"],
+              autofocus: false,
               maxLines: maxLines != null ? maxLines : 1,
               keyboardType: TextInputType.text,
               style: TextStyle(color: Colors.white, fontFamily: "NotoSans"),
@@ -176,14 +176,17 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           image: DecorationImage(
               fit: BoxFit.cover,
               image: NetworkImage(
-                  "${_videoInfo['items'][0]['snippet']['thumbnails']['medium']['url']}"))),
+                  _videoInfo['items'][0]['snippet']['thumbnails']['maxres'] != null ?
+                  "${_videoInfo['items'][0]['snippet']['thumbnails']['maxres']['url']}" :
+                  "${_videoInfo['items'][0]['snippet']['thumbnails']['high']['url']}"
+                  ))),
     );
   }
 
   Future<void> saveMusicRequest() async {
     Map<String, dynamic> music = new Map<String, dynamic>();
     Map<String, dynamic> snippet = _videoInfo["items"][0]["snippet"];
-    music["thumbnailUrl"] = snippet['thumbnails']['maxres']['url'];
+    music["thumbnailUrl"] = snippet['thumbnails']['maxres'] != null ? snippet['thumbnails']['maxres']['url'] : snippet['thumbnails']['high']['url'];
     music["title"] = snippet["title"];
     music["description"] = snippet["description"];
     music["publishedAt"] = snippet["publishedAt"].split("T")[0];
@@ -198,7 +201,7 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     MusicApi.postMusic(jsonEncode(music)).then((response){
       Map<String, dynamic> decodedResponse = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        print("posting music succeeded");
+        _singleton.clicked = 3;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (BuildContext context) => AppScreen(navigatedPage: ProfilePage(),)),
@@ -439,9 +442,9 @@ class UploadMusicPageTutorialScreenState extends State<UploadMusicPageTutorialSc
                       top: MediaQuery.of(context).size.height * .1 + 250,
                       left: MediaQuery.of(context).size.width * .9 - 280,
                       child: Container(
-                          width: 210,
+                          width: 240,
                           height: 50,
-                          child: Text("2. Choose suitable categories for the music", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
+                          child: Text("2. Choose suitable\n categories for the music", style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: "PermanentMarker"))
                       )
                   ),
                   Positioned(

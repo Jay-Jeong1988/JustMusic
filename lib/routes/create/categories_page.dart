@@ -26,7 +26,12 @@ class CategoriesPageState extends State<CategoriesPage> {
   }
 
   Widget build(BuildContext context) {
-    return Container(
+    return WillPopScope(
+      onWillPop: ()async{
+        Navigator.pop(context, _selectedCategoryTitles);
+        return Future.value(false);
+      },
+        child: Container(
           decoration: BoxDecoration(gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
@@ -63,6 +68,6 @@ class CategoriesPageState extends State<CategoriesPage> {
                   }
               );
             })
-      )));
+      ))));
   }
 }

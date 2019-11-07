@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/utils/save_to_playlist_button.dart';
 import 'package:flutter/material.dart';
@@ -221,6 +222,16 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     }
   }
 
+  String _getCategoryTitles() {
+    var titles = "";
+    if (source["categories"] != null) {
+      for (var category in source["categories"]) {
+        titles += "${category["title"]}, ";
+      }
+    }
+    return titles;
+  }
+
   @override
   Widget build(BuildContext context) {
     List<String> descriptionArray = source["description"].split(" ");
@@ -231,7 +242,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
         if (i == 4) shortenedDescription += "...";
       }
     }
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: (){
+        AppAds.showBanner();
+        return Future.value(true);
+      },
+        child: Scaffold(
       backgroundColor: Color.fromRGBO(10, 10, 15, 1),
         body: Material(
           color: Colors.black,
@@ -398,9 +414,15 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                               style: TextStyle(
                                   color: Colors.white70,
                                   fontFamily: "NotoSans",
-                                  fontSize: 10)))
+                                  fontSize: 10))),
+                      Container(
+                          child: Text("Category: ${_getCategoryTitles()}",
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontFamily: "NotoSans",
+                                  fontSize: 10))),
                     ]))),
       ]),
-    ));
+    )));
   }
 }

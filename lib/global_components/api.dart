@@ -6,14 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
 class Api {
-  static String host = "34.222.61.255";
+  static String host = "34.210.138.167";
   static String port = "3000";
 
   Api(){
     if (Platform.isAndroid) {
       getAndroidDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
-          host = "34.222.61.255";
+          host = "34.210.138.167";
           print("Running on a physical Android device");
         }else {
           host = "10.0.2.2";
@@ -23,7 +23,7 @@ class Api {
     } else if (Platform.isIOS) {
       getIosDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
-          host = "34.222.61.255";
+          host = "34.210.138.167";
           print("Running on a physical IOS device");
         }else {
           host = "10.0.2.2";

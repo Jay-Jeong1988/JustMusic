@@ -220,7 +220,7 @@ class HomePageTutorialScreenState extends State<HomePageTutorialScreen> {
                       left: MediaQuery.of(context).size.width * .9 - 280,
                       child: Container(
                           width: 210,
-                          height: 50,
+                          height: 60,
                           child: Text("Slide up/down\n to skip videos .", style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: "PermanentMarker"))
                       )
                   ),

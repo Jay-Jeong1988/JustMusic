@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/global_components/speech_bubble.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/image_uploader.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -36,7 +38,6 @@ class PlayListsPageState extends State<PlayListsPage> {
 
   @override
   void initState() {
-    super.initState();
     _getMyPlayLists = PlayListApi.getMyPlayLists(_singleton.user.id);
     _getMyPlayLists.then((lists) {
       setState(() {
@@ -50,12 +51,21 @@ class PlayListsPageState extends State<PlayListsPage> {
           });
       });
     });
+    _showAd();
+    super.initState();
+  }
+
+  void _showAd() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/7065456288');
+    AppAds.showBanner(size: AdSize.banner);
+    _singleton.adSize = "banner";
   }
 
   Widget _titleAndPlayBtn() {
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: 20, vertical: 0),
+      padding: EdgeInsets.fromLTRB(
+          20.0, 28.0, 20.0, 0),
       child: Row(
         mainAxisAlignment:
         MainAxisAlignment.spaceBetween,
@@ -70,18 +80,14 @@ class PlayListsPageState extends State<PlayListsPage> {
                       right: 10),
                   child: Center(
                       child: Text(
-                          playLists[currentPage.floor()]
-                          [
-                          'title']
-                              .length <
-                              23
-                              ? playLists[
+                          playLists[
                           currentPage
                               .floor()]
-                          ['title']
-                              : "${playLists[currentPage.floor()]['title'].substring(0, 14)} ...",
+                          ['title'],
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            height: 0.7,
+                            height: 1.0,
                             color: Colors.white,
                             fontSize: 38.0,
                             fontFamily:
@@ -91,13 +97,19 @@ class PlayListsPageState extends State<PlayListsPage> {
           ,
           currentPage == 0
               ? Container(width: 48, height: 48)
-              : IconButton(
+              : SizedBox(
+            width: 48,
+              height: 60,
+              child: FlatButton(
             padding: EdgeInsets.all(0),
-            icon: Icon(
+            textColor: Colors.red,
+            child: Column(children: [
+              Icon(
               Icons.play_arrow,
               size: 40.0,
-              color: Colors.red,
             ),
+              Text("PLAY")
+            ]),
             onPressed: () {
               Navigator.push(
                   context,
@@ -112,7 +124,7 @@ class PlayListsPageState extends State<PlayListsPage> {
               _singleton.widgetLayers+=1;
               _singleton.removeNavbar=true;
             },
-          )
+          ))
         ],
       ),
     );
@@ -635,7 +647,7 @@ class PlayListsPageState extends State<PlayListsPage> {
                     child: Scaffold(
                         backgroundColor: Colors.transparent,
                         body: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
                               _titleAndPlayBtn(),
                               Stack(children: [
