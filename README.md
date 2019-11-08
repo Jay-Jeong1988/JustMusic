@@ -1,6 +1,8 @@
 # JustMusic
 
-Simplest random youtube music player
+Simplest random youtube music player.
+
+It is available from <a href="https://play.google.com/store/apps/details?id=com.random.JustMusic">here</a>
 
 ## 0.0.5 Release Note
 
