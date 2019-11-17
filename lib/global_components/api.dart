@@ -14,24 +14,24 @@ class Api {
       getAndroidDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
           host = "34.210.138.167";
-          print("Running on a physical Android device");
+//          print("Running on a physical Android device");
         }else {
-          host = "10.0.2.2";
-          print("Running on an android emulator");
+          host = "34.210.138.167";
+//          print("Running on an android emulator");
         }
       });
     } else if (Platform.isIOS) {
       getIosDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
           host = "34.210.138.167";
-          print("Running on a physical IOS device");
+//          print("Running on a physical IOS device");
         }else {
           host = "10.0.2.2";
-          print("Running on an IOS emulator");
+//          print("Running on an IOS emulator");
         }
       });
     }else {
-      print("Platform: ${Platform()}");
+//      print("Platform: ${Platform()}");
     }
   }
 
@@ -57,15 +57,15 @@ class UserApi extends Api{
     String path = "/$_userPath/signup";
     Uri uri = Uri.http("${Api.host}:${Api.port}", path);
     var body = {"phoneNumber": user.phoneNumber, "accountId": user.uid};
-    print(uri);
+//    print(uri);
 
     try {
       response = await http.post(uri, body: body);
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
     return response;
   }
 
@@ -74,14 +74,14 @@ class UserApi extends Api{
     String path = "/$_userPath/authenticate";
     Map<String, String> queryParam = {"pnum": phoneNumber};
     Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
-    print(uri);
+//    print(uri);
     try {
       response = await http.get(uri);
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
     return response.statusCode == 200 ? true : false;
   }
 
@@ -90,14 +90,14 @@ class UserApi extends Api{
     String path = "/$_userPath/$userId/updateProfile";
     var response;
     Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
-    print(uri);
+//    print(uri);
     try {
       response = await http.get(uri);
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
   }
 
   static Future<void> updateBannerImage(userId, pictureUrl) async {
@@ -105,14 +105,14 @@ class UserApi extends Api{
     String path = "/$_userPath/$userId/updateBanner";
     var response;
     Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
-    print(uri);
+//    print(uri);
     try {
       response = await http.get(uri);
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
   }
 
   static Future<Response> updateNickname(userId, nickname) async {
@@ -120,14 +120,14 @@ class UserApi extends Api{
     String path = "/$_userPath/$userId/updateNickname";
     Response response;
     Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParam);
-    print(uri);
+//    print(uri);
     try {
       response = await http.get(uri);
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
     return response;
   }
 }
@@ -139,14 +139,14 @@ class MusicApi {
     http.Response response;
     String path = "/$_musicPath/create";
     Uri uri = Uri.http("${Api.host}:${Api.port}", path);
-    print(uri);
+//    print(uri);
     try {
       response = await http.post(uri, body: body, headers: {'Content-type': 'application/json'});
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
-    print("${response.body}");
+//    print('Response status: ${response.statusCode}');
+//    print("${response.body}");
     return response;
   }
 
@@ -160,7 +160,7 @@ class MusicApi {
       print(e);
     }
     List<dynamic> decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
     if (response.statusCode == 200) {
       return decodedResponse;
     } else {
@@ -185,13 +185,12 @@ class MusicApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
-      print(decodedResponse);
+//      print(decodedResponse);
       throw Exception('Failed to load music data');
     }
   }
@@ -206,13 +205,13 @@ class MusicApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
 //      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
-      print(decodedResponse);
+//      print(decodedResponse);
       throw Exception('Failed to load music data');
     }
   }
@@ -251,13 +250,12 @@ class MusicApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-//      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
-      print(decodedResponse);
+//      print(decodedResponse);
       throw Exception('Failed to load liked music');
     }
   }
@@ -275,13 +273,35 @@ class MusicApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      print("Decoded response: $decodedResponse");
+//      print("Decoded response: $decodedResponse");
       return decodedResponse;
     } else {
       throw Exception('Failed to check $isLikedOrIsBlocked');
+    }
+  }
+
+  static Future<List<dynamic>> getSearchResult(keyword, lastIndex) async {
+    var response;
+    String path = "/$_musicPath/searchResult/$lastIndex";
+    Map<String, String> queryParameters = {};
+    queryParameters["keyword"] = keyword;
+    var uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
+    try {
+      response = await http.get(uri);
+    } catch (e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+//    print('Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return decodedResponse;
+    } else {
+//      print(decodedResponse);
+      throw Exception('Failed to load music data');
     }
   }
 }
@@ -295,13 +315,13 @@ class PlayListApi {
     Map<String, String> queryParameters = {};
     queryParameters["userId"] = userId;
     Uri uri = Uri.http("${Api.host}:${Api.port}", path, queryParameters);
-    print(uri);
+//    print(uri);
     try {
       response = await http.post(uri, body: body, headers: {'Content-type': 'application/json'});
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 //    print("${response.body}");
     return jsonDecode(response.body);
   }
@@ -316,12 +336,12 @@ class PlayListApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
+//    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       return decodedResponse;
     } else {
-      print(decodedResponse);
+//      print(decodedResponse);
       throw Exception('Failed to load play lists');
     }
   }

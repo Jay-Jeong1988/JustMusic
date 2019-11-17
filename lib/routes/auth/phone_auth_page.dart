@@ -5,7 +5,6 @@ import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/create/upload_music_page.dart';
 import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
-import 'package:JustMusic/routes/search/search_page.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
@@ -139,7 +138,7 @@ class _PhoneAuthState extends State<PhoneAuth> {
               MaterialPageRoute(builder: (context) =>
                   AppScreen(navigatedPage:
                   _singleton.clicked == 3 ? ProfilePage() : _singleton
-                      .clicked == 1 ? SearchPage() : PlayListsPage()
+                      .clicked == 1 ? UploadMusicPage() : PlayListsPage()
                   )), (_) => false);
         }
       } else {
@@ -335,7 +334,7 @@ class SMSVerificationState extends State<SMSVerificationPage> {
               MaterialPageRoute(builder: (context) =>
                   AppScreen(navigatedPage:
                   _singleton.clicked == 3 ? ProfilePage() : _singleton
-                      .clicked == 1 ? SearchPage() : PlayListsPage()
+                      .clicked == 1 ? UploadMusicPage() : PlayListsPage()
                   )), (_) => false);
         }
       } else {
@@ -444,7 +443,7 @@ class NicknameCreationPageState extends State<NicknameCreationPage> {
                                       ? ProfilePage()
                                       : _singleton
                                       .clicked == 1
-                                      ? SearchPage()
+                                      ? UploadMusicPage()
                                       : PlayListsPage()
                                   )), (_) => false);
                         }else{

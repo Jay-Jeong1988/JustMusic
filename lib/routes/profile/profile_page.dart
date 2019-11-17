@@ -19,7 +19,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  AppLifecycleState _lastLifecycleState;
   List<dynamic> _myPosts = [];
   List<dynamic> _myLikes = [];
   List<dynamic> _myBlocks = [];
@@ -47,9 +48,15 @@ class ProfilePageState extends State<ProfilePage>
   String _nickname = '';
   final _storage = FlutterSecureStorage();
   bool _isValidationError = false;
+  bool _isPlaying = false;
+  static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
+  static const MethodChannel _channel2 = const MethodChannel('flutter_android_pip2');
+  bool _nativePlayBtnClicked = true;
+  bool _isInPipMode = false;
 
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     PlayListApi.getMyPlayLists(_singleton.user.id).then((playLists) {
       setState(() {
         _myPlayLists.addAll(playLists);
@@ -90,6 +97,27 @@ class ProfilePageState extends State<ProfilePage>
           _myPostsLastIndex += 10;
           if (res["count"] != null) _myPostsTotalCountInDB = res["count"];
         });
+      });
+    }
+
+    _channel.setMethodCallHandler(_didReceiveTranscript);
+    _channel2.setMethodCallHandler(_didReceiveTranscript2);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _controller.play();
+    _lastLifecycleState = state;
+    print("Last life cycle state: $_lastLifecycleState");
+    if(_lastLifecycleState == AppLifecycleState.inactive) {
+      if(_nativePlayBtnClicked) _controller.play();
+      else _controller.pause();
+      setState(() {
+        _isInPipMode = true;
+      });
+    }else if(_lastLifecycleState == AppLifecycleState.resumed){
+      setState(() {
+        _isInPipMode = false;
       });
     }
   }
@@ -239,6 +267,8 @@ class ProfilePageState extends State<ProfilePage>
                                                     _currentlyPlayingIndex =
                                                         index;
                                                     _musicActivated = true;
+                                                    _isPlaying = true;
+                                                    sendPlayingStatusToNative();
                                                   });
                                               },
                                               child: Image.network(items[index]
@@ -256,6 +286,8 @@ class ProfilePageState extends State<ProfilePage>
                                                     _currentlyPlayingIndex =
                                                         index;
                                                     _musicActivated = true;
+                                                    _isPlaying = true;
+                                                    sendPlayingStatusToNative();
                                                   });
                                               },
                                               child: Image.network(
@@ -305,6 +337,8 @@ class ProfilePageState extends State<ProfilePage>
                                                   items;
                                               _currentlyPlayingIndex = index;
                                               _musicActivated = true;
+                                              _isPlaying = true;
+                                              sendPlayingStatusToNative();
                                             });
                                         },
                                         child: Text("${items[index]["title"]}",
@@ -349,8 +383,47 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
+  Future<void> sendPlayingStatusToNative() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('playingStatus', {"isPlaying": _isPlaying});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+    print(response);
+  }
+
+  Future<void> _didReceiveTranscript(MethodCall call) async {
+    final String utterance = call.arguments;
+    switch(call.method) {
+      case "didReceiveTranscript":
+        print(utterance);
+        setState(() {
+          if (utterance == "playButtonClicked") {
+            _nativePlayBtnClicked = true;
+            _controller.play();
+          }
+        });
+    }
+  }
+  Future<void> _didReceiveTranscript2(MethodCall call) async {
+    final String utterance = call.arguments;
+    switch(call.method) {
+      case "didReceiveTranscript2":
+        print(utterance);
+        setState(() {
+          if (utterance == "pauseButtonClicked") {
+            _nativePlayBtnClicked = false;
+            _controller.pause();
+          }
+        });
+    }
+  }
+
   Widget _youtubePlayer() {
     return YoutubePlayer(
+      globalKey: true,
       context: context,
       videoId: YoutubePlayer.convertUrlToId(
           _currentlySelectedPlayList.isNotEmpty &&
@@ -358,7 +431,6 @@ class ProfilePageState extends State<ProfilePage>
               ? _currentlySelectedPlayList[_currentlyPlayingIndex]['videoUrl']
               : "https://youtu.be/HoXNpjUOx4U"),
       flags: YoutubePlayerFlags(
-        disableDragSeek: true,
         autoPlay: true,
         mute: false,
         showVideoProgressIndicator: true,
@@ -382,6 +454,9 @@ class ProfilePageState extends State<ProfilePage>
                 [DeviceOrientation.portraitUp]);
           }
           if (_controller.value.playerState == PlayerState.PAUSED) {
+            if(_lastLifecycleState == AppLifecycleState.inactive && _nativePlayBtnClicked) {
+              _controller.play();
+            }
             setState(() {
               _isPaused = true;
             });
@@ -424,6 +499,19 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
+  static void get enterPictureInPictureMode {
+    _channel.invokeMethod('enterPictureInPictureMode');
+  }
+  Future<void> enterPipMode() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('enterPictureInPictureMode');
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+  }
+
   List<Widget> _utilButtonsForPlayer() {
     return [
       Container(
@@ -452,7 +540,9 @@ class ProfilePageState extends State<ProfilePage>
                 textColor: Color.fromRGBO(255, 255, 255, 1),
                 child: Icon(Icons.photo_size_select_large, size: 50),
                 color: Colors.transparent,
-                onPressed: () {},
+                onPressed: () {
+                  enterPipMode();
+                },
               ))),
       Positioned(
           top: MediaQuery.of(context).size.width * .56 * .5 - 30,
@@ -741,6 +831,8 @@ class ProfilePageState extends State<ProfilePage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -752,7 +844,7 @@ class ProfilePageState extends State<ProfilePage>
         child: Stack(
             children: [_youtubePlayer()]
               ..addAll(_utilButtonsForPlayer().map((widget) {
-                return _isPaused ? widget : Container();
+                return !_isPaused ? Container() : !_isInPipMode ? widget : Container();
               }))
               ..addAll([
                 _isRepeatOn ? _repeatStatus("repeatOne", 30.0) : Container(),
@@ -764,7 +856,7 @@ class ProfilePageState extends State<ProfilePage>
           if (snapshot.connectionState == ConnectionState.done) {
             return Scaffold(
                 backgroundColor: Color.fromRGBO(20, 18, 28, 1),
-                body: Stack(children: [
+                body: _isInPipMode ? _youtubePlayer() : Stack(children: [
                   Column(children: [
                     _musicActivated
                         ? displayScreen
@@ -825,10 +917,6 @@ class ProfilePageState extends State<ProfilePage>
                           ],
                         ))
                   ]),
-//                  Center(child: Draggable(
-//                    childWhenDragging: Container(),
-//                      feedback: displayScreen,
-//                      child: displayScreen))
                 ]));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());

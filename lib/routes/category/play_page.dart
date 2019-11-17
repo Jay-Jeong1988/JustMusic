@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
+import 'package:JustMusic/routes/category/tobeplayed_page.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
 import 'package:firebase_admob/firebase_admob.dart';
@@ -67,26 +68,14 @@ class PlayPageState extends State<PlayPage> {
         child: Scaffold(
       body: Stack(
         children: [Positioned(
-          left: MediaQuery.of(context).size.width * .5 - MediaQuery.of(context).size.width * 0.15,
-            top: MediaQuery.of(context).size.height * .5 - MediaQuery.of(context).size.width * 0.15,
+          left: MediaQuery.of(context).size.width * 0.25 - MediaQuery.of(context).size.width * 0.1,
+            top: MediaQuery.of(context).size.height * .5 - MediaQuery.of(context).size.width * 0.1,
             child: Container(
-          width: MediaQuery.of(context).size.width * .3,
-          height: MediaQuery.of(context).size.width * .3,
-          decoration: BoxDecoration(
-            gradient:
-            LinearGradient(colors: [
-              Color.fromRGBO(244,134,137,1),
-              Color.fromRGBO(200,84,107,1),
-              Color.fromRGBO(175,36,78,1),
-            ],
-              begin: Alignment.topLeft,
-            ),
-            shape: BoxShape.circle,
-            color: Colors.white
-          ),
-          child: IconButton(
-            icon: Icon(Icons.play_circle_filled, color: Colors.white),
-            iconSize: 80,
+                child: RaisedButton.icon(
+                  color: Colors.transparent,
+    elevation: 0,
+    label: Text("RANDOM PLAY", style: TextStyle(color: Colors.white, fontSize: 22)),
+            icon: Icon(Icons.play_circle_filled, color: Colors.white, size: 60,),
             onPressed: (){
               Navigator.push(
                   context,
@@ -104,15 +93,16 @@ class PlayPageState extends State<PlayPage> {
           )
         )),
           Positioned(
-            top: MediaQuery.of(context).size.height * .1,
-              right: MediaQuery.of(context).size.width * .1,
-            child: Container(
-              width: 50,
-              height: 50,
-              child: IconButton(
-                iconSize: 30,
+            top: MediaQuery.of(context).size.height * .3 - MediaQuery.of(context).size.width * 0.1,
+              left: MediaQuery.of(context).size.width * .25 - MediaQuery.of(context).size.width * 0.1,
+            child:
+            Container(
+              child: RaisedButton.icon(
+    color: Colors.transparent,
+    elevation: 0,
+    label: Text("GENRES", style: TextStyle(color: Colors.white, fontSize: 22)),
                   icon: Icon(Icons.grid_on,
-                      color: Colors.white),
+                      color: Colors.white, size: 55),
                   onPressed: () async{
                       var result = await Navigator.push(
                           context,
@@ -128,6 +118,28 @@ class PlayPageState extends State<PlayPage> {
                       }
                   })
             )
+          ),
+          Positioned(
+              top: MediaQuery.of(context).size.height * 0.7 - MediaQuery.of(context).size.width * 0.1,
+              left: MediaQuery.of(context).size.width * .25 - MediaQuery.of(context).size.width * 0.1,
+              child:
+              Container(
+                  child: RaisedButton.icon(
+                      color: Colors.transparent,
+                      elevation: 0,
+                      label: Text("PLAYLIST", style: TextStyle(color: Colors.white, fontSize: 22)),
+                      icon: Icon(Icons.view_list,
+                          color: Colors.white, size: 60),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            SlideRightRoute(
+                                rightToLeft: true,
+                                page: ToBePlayedPage(selectedCategories: _selectedCategories)
+                            )
+                        );
+                      })
+              )
           )
         ]
         )

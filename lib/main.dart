@@ -70,7 +70,6 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   void initState() {
-
     _loadTutorialStatusFromDisk();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.initState();

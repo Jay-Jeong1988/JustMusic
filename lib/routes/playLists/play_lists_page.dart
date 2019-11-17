@@ -165,7 +165,7 @@ class PlayListsPageState extends State<PlayListsPage> {
 
               var cardItem = i == 0
                   ? Positioned.directional(
-                  top: 20 +
+                  top: 40 +
                       20 *
                           max(-delta, 0.0),
                   bottom: 20 +
@@ -225,7 +225,7 @@ class PlayListsPageState extends State<PlayListsPage> {
                                         )
                                       ]))))))
                   : Positioned.directional(
-                top: 20 +
+                top: 40 +
                     20 *
                         max(-delta, 0.0),
                 bottom: 20 +

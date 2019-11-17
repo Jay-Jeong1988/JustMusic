@@ -1,7 +1,7 @@
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/category/play_page.dart';
+import 'package:JustMusic/routes/create/upload_music_page.dart';
 import 'package:JustMusic/routes/playLists/play_lists_page.dart';
-import 'package:JustMusic/routes/search/search_page.dart';
 import 'package:flutter/material.dart';
 import '../global_components/modal_bottom_sheet.dart';
 import '../routes/profile/profile_page.dart';
@@ -16,18 +16,21 @@ class NavBar extends StatefulWidget {
   _NavBarState createState() => _NavBarState();
 }
 
-class _NavBarState extends State<NavBar> {
+class _NavBarState extends State<NavBar> with WidgetsBindingObserver {
   int _clicked = 0;
   Singleton _singleton = new Singleton();
   List<Widget> navPages = [
     PlayPage(),
-    SearchPage(),
+    UploadMusicPage(),
     PlayListsPage(),
     ProfilePage(),
   ];
+  bool _isInPipMode = false;
+  AppLifecycleState _lastLifecycleState;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     _clicked = _singleton.clicked ?? _clicked;
   }
@@ -65,8 +68,28 @@ class _NavBarState extends State<NavBar> {
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lastLifecycleState = state;
+    print("Last life cycle state: $_lastLifecycleState");
+    if(_lastLifecycleState == AppLifecycleState.inactive) {
+      setState(() {
+        _isInPipMode = true;
+      });
+    }else if(_lastLifecycleState == AppLifecycleState.resumed){
+      setState(() {
+        _isInPipMode = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    print("kkkk");
     return
     _singleton.removeNavbar ? Container() :
       _singleton.isFullScreen ? Container() : Positioned(
@@ -74,7 +97,7 @@ class _NavBarState extends State<NavBar> {
         child: BottomAppBar(
             elevation: 0,
             color: Colors.transparent,
-            child: Container(
+            child: _isInPipMode ? Container() : Container(
               alignment: Alignment.topCenter,
               width: MediaQuery.of(context).size.width,
               height: _singleton.adSize == "full" ? 110.0 : _singleton.adSize == "banner" ? 100.0 : 50.0,
@@ -84,7 +107,7 @@ class _NavBarState extends State<NavBar> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   navButton(Icons.play_arrow, 0),
-                  navButton(Icons.search, 1),
+                  navButton(Icons.add_box, 1),
                   navButton(Icons.subscriptions, 2),
                   navButton(Icons.person, 3)
                 ],

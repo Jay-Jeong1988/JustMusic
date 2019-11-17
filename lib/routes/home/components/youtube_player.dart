@@ -24,6 +24,7 @@ class YoutubePlayerScreen extends StatefulWidget {
 class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsBindingObserver
     {
   var _controller = YoutubePlayerController();
+  AppLifecycleState _lastLifecycleState;
   dynamic source;
   bool _isRepeatOn = false;
   bool _liked = false;
@@ -35,6 +36,8 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
 
   @override
   Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
+
+    _lastLifecycleState = state;
     if (state == AppLifecycleState.paused) {
       _controller.pause();
     }
@@ -224,6 +227,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
 
   String _getCategoryTitles() {
     var titles = "";
+    print("hohoho${source}");
     if (source["categories"] != null) {
       for (var category in source["categories"]) {
         titles += "${category["title"]}, ";
@@ -309,6 +313,9 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                       } else {
                         _singleton.isFullScreen = false;
                         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+                      }
+                      if (_controller.value.playerState == PlayerState.PAUSED) {
+                        if (_lastLifecycleState == AppLifecycleState.inactive) _controller.play();
                       }
                       if (_controller.value.playerState == PlayerState.UNKNOWN) {
                         _controller.cue();

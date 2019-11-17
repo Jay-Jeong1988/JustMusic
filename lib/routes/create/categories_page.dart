@@ -63,7 +63,7 @@ class CategoriesPageState extends State<CategoriesPage> {
                       _selectedCategoryTitles.contains(categoryTitle) ?
                         _selectedCategoryTitles.remove(categoryTitle)
                       : _selectedCategoryTitles.add(categoryTitle);
-                      print("$categoryTitle is selected");
+//                      print("$categoryTitle is selected");
                     });
                   }
               );

@@ -6,7 +6,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 class SaveToPlayListButton extends StatefulWidget {
   final currentlyPlaying;
   final saveIcon;
-  SaveToPlayListButton({Key key, @required this.currentlyPlaying, @required this.saveIcon}) : super(key: key);
+  final label;
+  SaveToPlayListButton({Key key, @required this.currentlyPlaying, @required this.saveIcon, this.label}) : super(key: key);
   createState() => SaveToPlayListButtonState();
 }
 
@@ -31,11 +32,11 @@ class SaveToPlayListButtonState extends State<SaveToPlayListButton> {
   @override
   Widget build(context) {
     return Container(
-        width: 60,
+        width: widget.label != null ? MediaQuery.of(context).size.width * .8 : 60,
         height: 60,
         child: FlatButton(
           padding: EdgeInsets.all(0),
-          child: widget.saveIcon,
+          child: widget.label != null ? Text(widget.label) : widget.saveIcon,
           color: Colors.transparent,
           onPressed: () {
             if (_singleton.user != null) {

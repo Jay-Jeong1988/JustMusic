@@ -88,8 +88,8 @@ class CategoryPageState extends State<CategoryPage>
   }
 
   Widget _customBackButton(){
-    _setSelectedCategoriesToDisk(
-        _selectedCategories);
+//    _setSelectedCategoriesToDisk(
+//        _selectedCategories);
     return IconButton(icon: Icon(Icons.arrow_back_ios), color: Colors.white,
         onPressed: ()=>Navigator.pop(context, _selectedCategories));
   }
@@ -102,7 +102,12 @@ class CategoryPageState extends State<CategoryPage>
             : loadCategoriesFromDisk,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Scaffold(
+            return WillPopScope(
+                onWillPop: ()async{
+                  _setSelectedCategoriesToDisk(_selectedCategories);
+                  Navigator.pop(context, _selectedCategories);
+                  return Future.value(false);
+                }, child: Scaffold(
               backgroundColor: Color.fromRGBO(20, 20, 25, 1),
               appBar: AppBar(
                   automaticallyImplyLeading: false,
@@ -289,7 +294,7 @@ class CategoryPageState extends State<CategoryPage>
                             ]))
                       ])),
                     ]),
-            );
+            ));
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child:
             Container(

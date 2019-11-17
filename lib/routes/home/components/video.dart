@@ -2,12 +2,11 @@
 //import 'package:video_player/video_player.dart';
 //
 //class VideoPlayerScreen extends StatefulWidget {
-//  String sourcePath;
-//  PageController pageController;
-//  VideoPlayerScreen({sourcePath, pageController})
+//  final String sourcePath;
+//  final PageController pageController;
+//  VideoPlayerScreen({this.sourcePath, this.pageController});
 //
-//  @override
-//  _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
+//  createState() => _VideoPlayerScreenState();
 //}
 //
 //class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
@@ -58,10 +57,10 @@
 //            future: _initializeVideoPlayerFuture,
 //            builder: (context, snapshot) {
 //              if (snapshot.connectionState == ConnectionState.done) {
-//                return Center(child: Stack(children: [Container(height: MediaQuery.of(context).size.height,child: Center(child: AspectRatio(
+//                return Center(child: Stack(children: [Container(height: MediaQuery.of(context).size.height*.25,child: Center(child: AspectRatio(
 //                    aspectRatio: _controller.value.aspectRatio,
 //                    child: VideoPlayer(_controller)))),
-//                Positioned(width: MediaQuery.of(context).size.width, bottom: 35.0,child: VideoProgressIndicator(_controller,
+//                Positioned(width: MediaQuery.of(context).size.width * .7, bottom: 35.0,child: VideoProgressIndicator(_controller,
 //                    allowScrubbing: false,
 //                    colors: VideoProgressColors(playedColor: Color.fromRGBO(255, 255, 255, 1),
 //                    backgroundColor: Color.fromRGBO(100, 100, 100, 0.7)),
