@@ -44,7 +44,6 @@ class _SearchPageState extends State<SearchPage> {
     await Future.delayed(const Duration(milliseconds: 500));
     AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/7065456288');
     AppAds.showBanner();
-    _singleton.adSize = "full";
   }
 
   void _scrollListener() {

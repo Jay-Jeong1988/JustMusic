@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
@@ -34,6 +35,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    AppAds.removeBanner();
     if (widget.selectedCategories != null) {
       _categoryTitles.addAll(widget.selectedCategories.map((category) {
         return category['title'];
@@ -43,6 +45,9 @@ class _HomePageState extends State<HomePage> {
     _urlConverted = MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null);
     if(widget.inheritedSources != null) setState((){_inheritedFromPlayList = true;});
     _urlConverted.then((musics) {
+      musics.forEach((music){
+        print(music["categories"]);
+      });
       _sources = widget.inheritedSources ?? musics;
     });
   }

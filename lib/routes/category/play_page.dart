@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:JustMusic/global_components/api.dart';
 import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/routes/category/tobeplayed_page.dart';
 import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
-import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,15 +27,10 @@ class PlayPageState extends State<PlayPage> {
         _selectedCategories.addAll(selectedCategories);
       });
     });
-    _showAd();
+    if (!_singleton.isAdLoaded) AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/6576702822');
+    if (_singleton.isAdLoaded && !_singleton.isAdShowing) AppAds.showBanner();
   }
 
-  void _showAd() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/6576702822');
-    AppAds.showBanner();
-    _singleton.adSize = "full";
-  }
 
   _loadSelectedCategoriesFromDisk() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -88,7 +83,6 @@ class PlayPageState extends State<PlayPage> {
                               _selectedCategories))));
               _singleton.widgetLayers+=1;
               _singleton.removeNavbar = true;
-              AppAds.hideBanner();
             },
           )
         )),

@@ -9,7 +9,6 @@ import 'package:JustMusic/routes/home/home_page.dart';
 import 'package:JustMusic/utils/image_uploader.dart';
 import 'package:JustMusic/utils/slide_right_route.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -38,6 +37,7 @@ class PlayListsPageState extends State<PlayListsPage> {
 
   @override
   void initState() {
+    super.initState();
     _getMyPlayLists = PlayListApi.getMyPlayLists(_singleton.user.id);
     _getMyPlayLists.then((lists) {
       setState(() {
@@ -51,15 +51,8 @@ class PlayListsPageState extends State<PlayListsPage> {
           });
       });
     });
-    _showAd();
-    super.initState();
-  }
-
-  void _showAd() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/7065456288');
-    AppAds.showBanner(size: AdSize.banner);
-    _singleton.adSize = "banner";
+    if (!_singleton.isAdLoaded) AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/6576702822');
+    if (_singleton.isAdLoaded && !_singleton.isAdShowing) AppAds.showBanner();
   }
 
   Widget _titleAndPlayBtn() {
@@ -128,6 +121,11 @@ class PlayListsPageState extends State<PlayListsPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
   }
 
   Widget _displayingCards() {

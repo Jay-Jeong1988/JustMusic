@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/profile/profile_page.dart';
@@ -51,12 +52,19 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     }).catchError((error) {
       print(error);
     });
+    if (!_singleton.isAdLoaded) AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/6576702822');
+    if (_singleton.isAdLoaded && !_singleton.isAdShowing) AppAds.showBanner();
   }
 
   void _getComment(value) {
     setState(() {
       _comment = value;
     });
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
   }
 
   void _getVideoIdAndCallApi(String receivedUri) {

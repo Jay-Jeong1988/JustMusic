@@ -30,37 +30,70 @@ class CategoryPageState extends State<CategoryPage>
   @override
   void initState() {
     super.initState();
-    getPrefInstance().then((pref){
-      prefs = pref;
-      loadCategoriesFromDisk = _loadCategoriesFromDisk();
-      loadCategoriesFromDisk.then((categoriesFromDisk) {
-        if (categoriesFromDisk == null) {
-          setState(() {
-            loadingFromServer = true;
-          });
-          loadCategoriesFromServer = MusicApi.getCategories();
-          loadCategoriesFromServer.then((List<dynamic> categoriesFromServer) {
-            categoriesFromServer.sort((a, b) {
-              return a['title'].toLowerCase().compareTo(b['title'].toLowerCase());
+    RemoteUpdateApi.checkUpdates().then((data){
+        getPrefInstance().then((pref){
+          prefs = pref;
+          if (data["isChange"]) {
+            setState(() {
+              loadingFromServer = true;
             });
-            _allCategories.addAll(categoriesFromServer);
-            _setCategoriesToDisk(categoriesFromServer);
-          });
-          print("cateogries loaded from server");
-        } else {
-          _allCategories.addAll(categoriesFromDisk);
-          print("categories loaded from localstorage");
-        }
-      });
+            loadCategoriesFromServer = MusicApi.getCategories();
+            loadCategoriesFromServer.then((
+                List<dynamic> categoriesFromServer) {
+              categoriesFromServer.sort((a, b) {
+                return a['title'].toLowerCase().compareTo(
+                    b['title'].toLowerCase());
+              });
+              _allCategories.addAll(categoriesFromServer);
+              _setCategoriesToDisk(categoriesFromServer);
+            });
+            print("cateogries loaded from server");
+            _loadSelectedCategoriesFromDisk().then((selectedCategories) {
+              if (selectedCategories != null)
+                setState(() {
+                  _selectedCategories.addAll(selectedCategories);
+                });
+              else
+                setState(() {
+                  _selectedCategories = [];
+                });
+            });
+          }else {
+            loadCategoriesFromDisk = _loadCategoriesFromDisk();
+            loadCategoriesFromDisk.then((categoriesFromDisk) {
+              if (categoriesFromDisk == null) {
+                setState(() {
+                  loadingFromServer = true;
+                });
+                loadCategoriesFromServer = MusicApi.getCategories();
+                loadCategoriesFromServer.then((
+                    List<dynamic> categoriesFromServer) {
+                  categoriesFromServer.sort((a, b) {
+                    return a['title'].toLowerCase().compareTo(
+                        b['title'].toLowerCase());
+                  });
+                  _allCategories.addAll(categoriesFromServer);
+                  _setCategoriesToDisk(categoriesFromServer);
+                });
+                print("cateogries loaded from server");
+              } else {
+                _allCategories.addAll(categoriesFromDisk);
+                print("categories loaded from localstorage");
+              }
+            });
 
-      _loadSelectedCategoriesFromDisk().then((selectedCategories) {
-        if (selectedCategories != null) setState(() {
-          _selectedCategories.addAll(selectedCategories);
+            _loadSelectedCategoriesFromDisk().then((selectedCategories) {
+              if (selectedCategories != null)
+                setState(() {
+                  _selectedCategories.addAll(selectedCategories);
+                });
+              else
+                setState(() {
+                  _selectedCategories = [];
+                });
+            });
+          }
         });
-        else setState(() {
-          _selectedCategories = [];
-        });
-      });
     });
   }
 

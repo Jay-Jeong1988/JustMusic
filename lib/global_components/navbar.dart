@@ -3,6 +3,7 @@ import 'package:JustMusic/routes/category/play_page.dart';
 import 'package:JustMusic/routes/create/upload_music_page.dart';
 import 'package:JustMusic/routes/playLists/play_lists_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../global_components/modal_bottom_sheet.dart';
 import '../routes/profile/profile_page.dart';
 import 'app_ads.dart';
@@ -27,12 +28,24 @@ class _NavBarState extends State<NavBar> with WidgetsBindingObserver {
   ];
   bool _isInPipMode = false;
   AppLifecycleState _lastLifecycleState;
+  static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
     _clicked = _singleton.clicked ?? _clicked;
+  }
+
+  Future<void> sendPlayingStatusToNative() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('playingStatus', {"isPlaying": false});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+    print(response);
   }
 
   Widget navButton(IconData icon, int index) {
@@ -53,8 +66,7 @@ class _NavBarState extends State<NavBar> with WidgetsBindingObserver {
                     : Color.fromRGBO(190, 190, 190, 1),
                 size: 30.0)),
         onPressed: () {
-          AppAds.dispose();
-          Singleton().adSize = null;
+          sendPlayingStatusToNative();
           if ((index == 1 || index == 2 || index == 3) && _singleton.user == null) {
             setModalBottomSheet(context);
             _singleton.clicked = index;
@@ -100,7 +112,7 @@ class _NavBarState extends State<NavBar> with WidgetsBindingObserver {
             child: _isInPipMode ? Container() : Container(
               alignment: Alignment.topCenter,
               width: MediaQuery.of(context).size.width,
-              height: _singleton.adSize == "full" ? 110.0 : _singleton.adSize == "banner" ? 100.0 : 50.0,
+              height: _singleton.isAdShowing ? 110.0 : 50.0,
               padding: EdgeInsets.only(left: 15.0, right: 15.0),
               child: new Row(
                 mainAxisSize: MainAxisSize.max,

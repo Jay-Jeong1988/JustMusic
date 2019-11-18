@@ -40,6 +40,7 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
   @override
   void initState(){
     WidgetsBinding.instance.addObserver(this);
+    AppAds.removeBanner();
     _listViewScrollController = new ScrollController()
       ..addListener(_scrollListener);
 
@@ -54,7 +55,6 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
       _sources = musics;
     });
   
-    _showAd();
     _channel.setMethodCallHandler(_didReceiveTranscript);
     _channel2.setMethodCallHandler(_didReceiveTranscript2);
   }
@@ -82,13 +82,6 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
-  }
-
-  void _showAd() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    AppAds.init(bannerUnitId: 'ca-app-pub-7258776822668372/7065456288');
-    AppAds.showBanner();
-    _singleton.adSize = "full";
   }
 
   void _scrollListener() {
@@ -367,17 +360,22 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
             _controller.cue();
           }
           if (_controller.value.playerState == PlayerState.ENDED) {
-            _currentlyPlayingIndex < _sources.length - 1
-                ? setState(() {
-                  _currentlyPlayingIndex += 1;
-                  })
-                : setState(() {
-                    _currentlyPlayingIndex = 0;
-                  });
-            _controller.cue();
+            setState(() {
+              _currentlyPlayingIndex += 1;
+              _controller.cue();
+            });
           }
           if (_controller.value.playerState == PlayerState.CUED) {
             _controller.play();
+            setState(() {
+              if(_currentlyPlayingIndex == _sources.length - 1) {
+                MusicApi.getMusics(_categoryTitles, userId: _user != null ? _user.id : null).then((musics){
+                  setState(() {
+                    _sources..addAll(musics);
+                  });
+                });
+              }
+            });
           }
           if (_controller.value.hasError) {
             print("Error: ${_controller.value.errorCode}");
@@ -473,7 +471,19 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
       if (snapshot.hasData) {
         if (snapshot.connectionState == ConnectionState.done) {
           return !_isInPipMode ?
-            SingleChildScrollView(
+          WillPopScope(
+              onWillPop: ()async{
+                if (_isPlaying) {
+                  setState((){
+                    _isPlaying = false;
+                    sendPlayingStatusToNative();
+                  });
+                  return Future.value(false);
+                }else {
+                  return Future.value(true);
+                }
+              },
+              child: SingleChildScrollView(
                 child: Container(
                     height: MediaQuery
                         .of(context)
@@ -508,7 +518,7 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
                               _searchField(),
                               Flexible(child: Container(
                                   padding: EdgeInsets.fromLTRB(
-                                      5.0, 0, 5.0, 110.0),
+                                      5.0, 0, 5.0, 10.0),
                                   child: _listView(_listItem)
                               ))
                             ])
@@ -545,7 +555,7 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
                           )) : Container(),
                           _isPlaying ? videoPlayingWindow()
                               : Container(),
-                    ])))) :
+                    ]))))) :
               _youtubePlayer()
           ;
       }else if (snapshot.connectionState == ConnectionState.waiting) {

@@ -33,16 +33,19 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
   List<String> alternative = [];
   Singleton _singleton = new Singleton();
   DateTime _currentUtilBtnTappedTime;
+  bool _isPlaying = true;
+  static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
+  static const MethodChannel _channel2 = const MethodChannel('flutter_android_pip2');
+  bool _nativePlayBtnClicked = true;
 
   @override
   Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
-
+    _controller.play();
     _lastLifecycleState = state;
-    if (state == AppLifecycleState.paused) {
-      _controller.pause();
-    }
-    else if(state == AppLifecycleState.resumed) {
-      _controller.play();
+    print("Last life cycle state: $_lastLifecycleState");
+    if(_lastLifecycleState == AppLifecycleState.inactive) {
+      if (_nativePlayBtnClicked) _controller.play();
+      else _controller.pause();
     }
   }
 
@@ -54,12 +57,17 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     alternative.add(widget.source["videoUrl"]);
     checkLikes();
     checkBlocks();
+    _channel.setMethodCallHandler(_didReceiveTranscript);
+    _channel2.setMethodCallHandler(_didReceiveTranscript2);
+    sendPlayingStatusToNative();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    _isPlaying = false;
+    sendPlayingStatusToNative();
     super.dispose();
   }
 
@@ -225,6 +233,44 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     }
   }
 
+  Future<void> sendPlayingStatusToNative() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('playingStatus', {"isPlaying": _isPlaying});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+    print(response);
+  }
+
+  Future<void> _didReceiveTranscript(MethodCall call) async {
+    final String utterance = call.arguments;
+    switch(call.method) {
+      case "didReceiveTranscript":
+        print(utterance);
+        setState(() {
+          if (utterance == "playButtonClicked") {
+            _nativePlayBtnClicked = true;
+            _controller.play();
+          }
+        });
+    }
+  }
+  Future<void> _didReceiveTranscript2(MethodCall call) async {
+    final String utterance = call.arguments;
+    switch(call.method) {
+      case "didReceiveTranscript2":
+        print(utterance);
+        setState(() {
+          if (utterance == "pauseButtonClicked") {
+            _nativePlayBtnClicked = false;
+            _controller.pause();
+          }
+        });
+    }
+  }
+
   String _getCategoryTitles() {
     var titles = "";
     print("hohoho${source}");
@@ -315,7 +361,9 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
                       }
                       if (_controller.value.playerState == PlayerState.PAUSED) {
-                        if (_lastLifecycleState == AppLifecycleState.inactive) _controller.play();
+                        if(_lastLifecycleState == AppLifecycleState.inactive && _nativePlayBtnClicked) {
+                          _controller.play();
+                        }
                       }
                       if (_controller.value.playerState == PlayerState.UNKNOWN) {
                         _controller.cue();

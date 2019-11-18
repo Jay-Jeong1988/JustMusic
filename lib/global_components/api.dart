@@ -433,3 +433,22 @@ class PlayListApi {
     }
   }
 }
+
+class RemoteUpdateApi {
+  static Future<dynamic> checkUpdates() async {
+    var response;
+    String path = "/update/check";
+    var uri = Uri.http("${Api.host}:${Api.port}", path);
+    try {
+      response = await http.get(uri);
+    }catch(e) {
+      print(e);
+    }
+    var decodedResponse = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return decodedResponse;
+    } else {
+      throw Exception('Failed to remove a play list');
+    }
+  }
+}

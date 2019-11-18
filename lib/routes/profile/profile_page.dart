@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:JustMusic/global_components/AK.dart';
 import 'package:JustMusic/global_components/api.dart';
+import 'package:JustMusic/global_components/app_ads.dart';
 import 'package:JustMusic/global_components/singleton.dart';
 import 'package:JustMusic/utils/image_uploader.dart';
 import 'package:JustMusic/utils/save_to_playlist_button.dart';
@@ -57,6 +58,7 @@ class ProfilePageState extends State<ProfilePage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AppAds.removeBanner();
     PlayListApi.getMyPlayLists(_singleton.user.id).then((playLists) {
       setState(() {
         _myPlayLists.addAll(playLists);
@@ -470,20 +472,52 @@ class ProfilePageState extends State<ProfilePage>
             _controller.cue();
           }
           if (_controller.value.playerState == PlayerState.ENDED) {
-            _isRepeatOn
-                ? _controller.cue()
-                : _currentlyPlayingIndex < _currentlySelectedPlayList.length - 1
-                    ? setState(() {
-                        _currentlyPlayingIndex += 1;
-                      })
-                    : _isRepeatAllOn
-                        ? setState(() {
-                            _currentlyPlayingIndex = 0;
-                          })
-                        : _controller.pause();
+            if (_isRepeatOn) _controller.cue();
+            else {
+              setState(() {
+                if (_currentlyPlayingIndex < _currentlySelectedPlayList.length - 1) {
+                  _currentlyPlayingIndex += 1;
+                }else {
+                  if (_isRepeatAllOn) {
+                    _currentlyPlayingIndex = 0;
+                    _controller.cue();
+                  }
+                }
+              });
+            }
           }
           if (_controller.value.playerState == PlayerState.CUED) {
             _controller.play();
+            setState(() {
+              if(_currentlyPlayingIndex == _currentlySelectedPlayList.length - 1) {
+                if (_currentTabIndex == 0 && _myPosts.length < _myPostsTotalCountInDB) {
+                  MusicApi.getMyPosts(_singleton.user.id, _myPostsLastIndex).then((res) {
+                    setState(() {
+                      _myPosts.addAll(res["posts"]);
+                      _myPostsLastIndex += 10;
+                    });
+                  });
+                } else if (_currentTabIndex == 1 &&
+                    _myLikes.length < _myLikesTotalCountInDB) {
+                  MusicApi.getVideosFor('likes', _singleton.user.id, _myLikesLastIndex)
+                      .then((res) {
+                    setState(() {
+                      _myLikes.addAll(res["posts"]);
+                      _myLikesLastIndex += 10;
+                    });
+                  });
+                } else if (_currentTabIndex == 2 &&
+                    _myBlocks.length < _myBlocksTotalCountInDB) {
+                  MusicApi.getVideosFor('blocks', _singleton.user.id, _myBlocksLastIndex)
+                      .then((res) {
+                    setState(() {
+                      _myBlocks.addAll(res["posts"]);
+                      _myBlocksLastIndex += 10;
+                    });
+                  });
+                }
+              }
+            });
           }
           if (_controller.value.hasError) {
             print("Error: ${_controller.value.errorCode}");
@@ -573,6 +607,7 @@ class ProfilePageState extends State<ProfilePage>
                 onPressed: () {
                   setState(() {
                     _isRepeatOn = !_isRepeatOn;
+                    _isRepeatAllOn = false;
                   });
                 },
               ))),
@@ -590,6 +625,7 @@ class ProfilePageState extends State<ProfilePage>
                 onPressed: () {
                   setState(() {
                     _isRepeatAllOn = !_isRepeatAllOn;
+                    _isRepeatOn = false;
                   });
                 },
               )))
