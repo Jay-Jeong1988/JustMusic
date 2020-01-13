@@ -8,6 +8,7 @@ import 'package:JustMusic/models/user.dart';
 import 'package:JustMusic/routes/home/components/youtube_player.dart';
 import 'package:JustMusic/utils/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,6 +32,8 @@ class _HomePageState extends State<HomePage> {
   User _user;
   Singleton _singleton = Singleton();
   bool _inheritedFromPlayList = false;
+  bool _isPlaying = true;
+  static const MethodChannel _channel5 = const MethodChannel('flutter_android_pip5');
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _HomePageState extends State<HomePage> {
       });
       _sources = widget.inheritedSources ?? musics;
     });
+    sendPlayingWidgetToNative();
   }
 
   List shuffle(List items) {
@@ -68,6 +72,18 @@ class _HomePageState extends State<HomePage> {
     return items;
   }
 
+  static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
+  Future<void> sendPlayingStatusToNative() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('playingStatus', {"isPlaying": _isPlaying});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+    print(response);
+  }
+
 //  void _scrollOn() async {
 //    _pageViewScrollPhysics = NeverScrollableScrollPhysics();
 //    await Future.delayed(const Duration(milliseconds: 1000));
@@ -75,6 +91,16 @@ class _HomePageState extends State<HomePage> {
 //      _pageViewScrollPhysics = AlwaysScrollableScrollPhysics();
 //    });
 //  }
+
+  Future<void> sendPlayingWidgetToNative() async {
+    int response;
+    try {
+      final int result = await _channel5.invokeMethod('playingWidget', {"widget": true});
+      response = result;
+    } on PlatformException catch (e) {
+      response = 404;
+    }
+  }
 
   void resetSources(blockedMusicId) async{
       _sources.removeWhere((source){
@@ -173,6 +199,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _isPlaying = false;
+    sendPlayingStatusToNative();
     super.dispose();
   }
 

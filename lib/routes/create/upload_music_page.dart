@@ -76,7 +76,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
           _videoInfo = info['pageInfo']['totalResults'] >= 1
               ? info
               : new Map<String, dynamic>();
-          print(_videoInfo["items"][0]["snippet"]["thumbnails"]);
         });
       });
     }
@@ -89,7 +88,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
       } else {
         setState(() {
           _videoInfo = new Map<String, dynamic>();
-          print(_videoInfo);
         });
         print("Invalid Youtube URL");
       }
@@ -204,7 +202,6 @@ class UploadMusicPageState extends State<UploadMusicPage> {
     music["categoryTitles"] = _selectedCategoryTitles;
     music["userId"] = _user.id;
 
-    print("sending body: ${jsonEncode(music)}");
 
     MusicApi.postMusic(jsonEncode(music)).then((response){
       Map<String, dynamic> decodedResponse = jsonDecode(response.body);

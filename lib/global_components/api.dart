@@ -6,24 +6,24 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
 class Api {
-  static String host = "34.210.138.167";
+  static String host = "44.230.225.211";
   static String port = "3000";
 
   Api(){
     if (Platform.isAndroid) {
       getAndroidDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
-          host = "34.210.138.167";
+          host = "44.230.225.211";
 //          print("Running on a physical Android device");
         }else {
-          host = "34.210.138.167";
+          host = "44.230.225.211";
 //          print("Running on an android emulator");
         }
       });
     } else if (Platform.isIOS) {
       getIosDeviceInfo().then((info){
         if (info.isPhysicalDevice == true){
-          host = "34.210.138.167";
+          host = "44.230.225.211";
 //          print("Running on a physical IOS device");
         }else {
           host = "10.0.2.2";
@@ -358,12 +358,10 @@ class PlayListApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       return decodedResponse;
     } else {
-      print(decodedResponse);
       throw Exception('Failed to get a play list');
     }
   }
@@ -380,16 +378,7 @@ class PlayListApi {
     } catch (e) {
       print(e);
     }
-//    var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
-
-//    if (response.statusCode == 200) {
     return response.statusCode;
-//    } else {
-
-//      print(decodedResponse);
-//      throw Exception('Failed to save a song in a play list');
-//    }
   }
 
   static Future<dynamic> removeMusicFromPlayList(musicId,playListId) async {
@@ -405,12 +394,10 @@ class PlayListApi {
       print(e);
     }
     var decodedResponse = jsonDecode(response.body);
-    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       return decodedResponse;
     } else {
-      print(decodedResponse);
       throw Exception('Failed to remove a song from play list');
     }
   }
@@ -424,7 +411,6 @@ class PlayListApi {
     } catch (e) {
       print(e);
     }
-    print('Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       return response.statusCode;

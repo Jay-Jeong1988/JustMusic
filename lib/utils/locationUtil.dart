@@ -14,7 +14,6 @@ Future<Country> getCountryInstance() async {
         desiredAccuracy: LocationAccuracy.best).timeout(Duration(seconds: 10)).catchError((error) {
       if (error is TimeoutException) {
         Geolocator().getLastKnownPosition().then((position) {
-          print("Last position is loaded due to failing current position.");
         }).catchError((error) {
           print(error);
         });
@@ -28,7 +27,6 @@ Future<Country> getCountryInstance() async {
   }
   if(placemark != null) {
     isoCountryCode = placemark[0].isoCountryCode;
-    print("user iso country code: $isoCountryCode");
     country = Country.findByIsoCode(isoCountryCode);
   }else {
     print("Geolocator plugin failed getting placemark");

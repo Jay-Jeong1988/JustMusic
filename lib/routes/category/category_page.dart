@@ -47,7 +47,6 @@ class CategoryPageState extends State<CategoryPage>
               _allCategories.addAll(categoriesFromServer);
               _setCategoriesToDisk(categoriesFromServer);
             });
-            print("cateogries loaded from server");
             _loadSelectedCategoriesFromDisk().then((selectedCategories) {
               if (selectedCategories != null)
                 setState(() {
@@ -75,10 +74,8 @@ class CategoryPageState extends State<CategoryPage>
                   _allCategories.addAll(categoriesFromServer);
                   _setCategoriesToDisk(categoriesFromServer);
                 });
-                print("cateogries loaded from server");
               } else {
                 _allCategories.addAll(categoriesFromDisk);
-                print("categories loaded from localstorage");
               }
             });
 

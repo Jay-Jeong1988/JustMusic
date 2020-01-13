@@ -7,6 +7,7 @@ import 'package:JustMusic/utils/logo.dart';
 import 'package:JustMusic/utils/save_to_playlist_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -34,8 +35,11 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
   bool _isPlaying = false;
   static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
   static const MethodChannel _channel2 = const MethodChannel('flutter_android_pip2');
-  bool _nativePlayBtnClicked = true;
+  static const MethodChannel _channel3 = const MethodChannel('flutter_android_pip3');
+  static const MethodChannel _channel5 = const MethodChannel('flutter_android_pip5');
   bool _isInPipMode = false;
+  bool paused = true;
+  bool _nativePauseBtnActivated = false;
 
   @override
   void initState(){
@@ -57,24 +61,22 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
   
     _channel.setMethodCallHandler(_didReceiveTranscript);
     _channel2.setMethodCallHandler(_didReceiveTranscript2);
+    _channel3.setMethodCallHandler(_didReceiveTranscript3);
+    sendPlayingWidgetToNative();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    _controller.play();
       _lastLifecycleState = state;
       print("Last life cycle state: $_lastLifecycleState");
-      if(_lastLifecycleState == AppLifecycleState.inactive) {
-        if(_nativePlayBtnClicked) _controller.play();
-        else _controller.pause();
-        setState(() {
+      setState(() {
+        if(_lastLifecycleState == AppLifecycleState.inactive) {
           _isInPipMode = true;
-        });
-      }else if(_lastLifecycleState == AppLifecycleState.resumed){
-        setState(() {
+        }else if(_lastLifecycleState == AppLifecycleState.resumed){
           _isInPipMode = false;
-        });
-      }
+        }
+        _controller.play();
+      });
   }
 
   @override
@@ -91,6 +93,15 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
           _sources..addAll(musics);
         });
       });
+    }
+  }
+  Future<void> sendPlayingWidgetToNative() async {
+    int response;
+    try {
+      final int result = await _channel5.invokeMethod('playingWidget', {"widget": false});
+      response = result;
+    } on PlatformException catch (e) {
+      response = 404;
     }
   }
 
@@ -240,7 +251,7 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
                                       ),
                                     )),
                                 Container(
-                                    margin: EdgeInsets.only(top: 4.0),
+                                    margin: EdgeInsets.only(top: 3.0),
                                     child: Text(description,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
@@ -339,7 +350,12 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
         _controller = controller;
         _controller.cue();
         _controller.addListener(() {
-
+          if(_lastLifecycleState == AppLifecycleState.inactive && !_nativePauseBtnActivated) {
+            _controller.play();
+          }
+          if(_lastLifecycleState == AppLifecycleState.resumed && paused) {
+            _controller.play();
+          }
           if (_controller.value.isFullScreen) {
             _singleton.isFullScreen = true;
             SystemChrome.setPreferredOrientations(
@@ -350,11 +366,14 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
                 [DeviceOrientation.portraitUp]);
           }
           if (_controller.value.playerState == PlayerState.PAUSED) {
-            if(_lastLifecycleState == AppLifecycleState.inactive && _nativePlayBtnClicked) {
-              _controller.play();
-            }
+            paused = true;
+            _sendPausedStatus();
+          }
+          if (_controller.value.playerState == PlayerState.BUFFERING) {
           }
           if (_controller.value.playerState == PlayerState.PLAYING) {
+            paused = false;
+            _sendPausedStatus();
           }
           if (_controller.value.playerState == PlayerState.UNKNOWN) {
             _controller.cue();
@@ -435,29 +454,62 @@ class ToBePlayedPageState extends State<ToBePlayedPage> with WidgetsBindingObser
       print(response);
   }
 
+  Future<void> _sendPausedStatus() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('sendPausedStatus', {"paused": paused});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
+    print(response);
+  }
+
   Future<void> _didReceiveTranscript(MethodCall call) async {
     final String utterance = call.arguments;
     switch(call.method) {
       case "didReceiveTranscript":
         print(utterance);
         setState(() {
-          if (utterance == "playButtonClicked") {
-            _nativePlayBtnClicked = true;
-            _controller.play();
+          if (utterance == "play") {
+          _nativePauseBtnActivated = false;
+          _controller.play();
+          }else if (utterance == "pause") {
+          _nativePauseBtnActivated = true;
+          _controller.pause();
           }
         });
     }
   }
+
   Future<void> _didReceiveTranscript2(MethodCall call) async {
     final String utterance = call.arguments;
     switch(call.method) {
       case "didReceiveTranscript2":
         print(utterance);
         setState(() {
-          if (utterance == "pauseButtonClicked") {
-            _nativePlayBtnClicked = false;
-            _controller.pause();
+          if (utterance == "previousSong") {
+            if (_currentlyPlayingIndex != 0) _currentlyPlayingIndex -= 1;
+            else Fluttertoast.showToast(
+                msg: "First track!",
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Color.fromRGBO(0, 0, 0, 0.5)
+            );
           }
+          print(_currentlyPlayingIndex);
+        });
+    }
+  }
+  Future<void> _didReceiveTranscript3(MethodCall call) async {
+    final String utterance = call.arguments;
+    switch(call.method) {
+      case "didReceiveTranscript3":
+        print(utterance);
+        setState(() {
+          if (utterance == "nextSong") {
+            _currentlyPlayingIndex += 1;
+          }
+          print(_currentlyPlayingIndex);
         });
     }
   }

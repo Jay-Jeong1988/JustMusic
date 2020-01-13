@@ -35,18 +35,14 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
   DateTime _currentUtilBtnTappedTime;
   bool _isPlaying = true;
   static const MethodChannel _channel = const MethodChannel('flutter_android_pip');
-  static const MethodChannel _channel2 = const MethodChannel('flutter_android_pip2');
-  bool _nativePlayBtnClicked = true;
+
+  bool paused = true;
+  bool _nativePauseBtnActivated = false;
 
   @override
-  Future<void> didChangeAppLifecycleState (AppLifecycleState state) async {
-    _controller.play();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     _lastLifecycleState = state;
-    print("Last life cycle state: $_lastLifecycleState");
-    if(_lastLifecycleState == AppLifecycleState.inactive) {
-      if (_nativePlayBtnClicked) _controller.play();
-      else _controller.pause();
-    }
+    _controller.play();
   }
 
   @override
@@ -58,7 +54,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     checkLikes();
     checkBlocks();
     _channel.setMethodCallHandler(_didReceiveTranscript);
-    _channel2.setMethodCallHandler(_didReceiveTranscript2);
     sendPlayingStatusToNative();
   }
 
@@ -66,8 +61,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
-    _isPlaying = false;
-    sendPlayingStatusToNative();
     super.dispose();
   }
 
@@ -173,7 +166,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                             });
                             widget.resetSources(source["_id"]);
                           });
-                          print("blocked: $_blocked");
                       }
                     });
                   }else {
@@ -214,7 +206,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
       MusicApi.check("isLiked", widget.user.id, source["_id"])
           .then((result) {
         setState(() {
-          print("liked: ${result['isLiked']}");
           _liked = result['isLiked'];
         });
       });
@@ -226,7 +217,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
       MusicApi.check("isBlocked", widget.user.id, source["_id"])
           .then((result) {
         setState(() {
-          print("blocked: ${result['isBlocked']}");
           _blocked = result['isBlocked'];
         });
       });
@@ -241,35 +231,34 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
     } on PlatformException catch (e) {
       response = "Failed to Invoke: '${e.message}'.";
     }
-    print(response);
+  }
+
+  Future<void> _sendPausedStatus() async {
+    String response = "";
+    try {
+      final String result = await _channel.invokeMethod('sendPausedStatus', {"paused": paused});
+      response = result;
+    } on PlatformException catch (e) {
+      response = "Failed to Invoke: '${e.message}'.";
+    }
   }
 
   Future<void> _didReceiveTranscript(MethodCall call) async {
     final String utterance = call.arguments;
     switch(call.method) {
       case "didReceiveTranscript":
-        print(utterance);
         setState(() {
-          if (utterance == "playButtonClicked") {
-            _nativePlayBtnClicked = true;
+          if (utterance == "play") {
+            _nativePauseBtnActivated = false;
             _controller.play();
-          }
-        });
-    }
-  }
-  Future<void> _didReceiveTranscript2(MethodCall call) async {
-    final String utterance = call.arguments;
-    switch(call.method) {
-      case "didReceiveTranscript2":
-        print(utterance);
-        setState(() {
-          if (utterance == "pauseButtonClicked") {
-            _nativePlayBtnClicked = false;
+          }else if (utterance == "pause") {
+            _nativePauseBtnActivated = true;
             _controller.pause();
           }
         });
     }
   }
+
 
   String _getCategoryTitles() {
     var titles = "";
@@ -353,6 +342,11 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                     _controller = controller;
                     _controller.cue();
                     _controller.addListener(() {
+                      if(_lastLifecycleState == AppLifecycleState.inactive && !_nativePauseBtnActivated) {
+                        _controller.play();
+                      }else if(_lastLifecycleState == AppLifecycleState.resumed && paused) {
+                        _controller.play();
+                      }
                       if (_controller.value.isFullScreen) {
                         _singleton.isFullScreen = true;
                         SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
@@ -361,9 +355,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> with WidgetsB
                         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
                       }
                       if (_controller.value.playerState == PlayerState.PAUSED) {
-                        if(_lastLifecycleState == AppLifecycleState.inactive && _nativePlayBtnClicked) {
-                          _controller.play();
-                        }
+                        paused = true;
+                        _sendPausedStatus();
+                      }
+                      if (_controller.value.playerState == PlayerState.PLAYING) {
+                        paused = false;
+                        _sendPausedStatus();
                       }
                       if (_controller.value.playerState == PlayerState.UNKNOWN) {
                         _controller.cue();

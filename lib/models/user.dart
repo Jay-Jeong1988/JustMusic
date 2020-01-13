@@ -18,7 +18,6 @@ class User {
     this.profile,
     this.followers
   }){
-    print("new user instance is created");
   }
 
   factory User.fromDecodedJson(Map<String, dynamic> user) {
